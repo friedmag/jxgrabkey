@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="39">
+<configurationDescriptor version="51">
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -25,10 +25,8 @@
   <confs>
     <conf name="Debug" type="2">
       <toolsSet>
-        <compilerSet>GNU</compilerSet>
-        <cRequired>true</cRequired>
-        <cppRequired>true</cppRequired>
-        <fortranRequired>false</fortranRequired>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -61,10 +59,8 @@
     </conf>
     <conf name="Release" type="2">
       <toolsSet>
-        <compilerSet>GNU</compilerSet>
-        <cRequired>true</cRequired>
-        <cppRequired>true</cppRequired>
-        <fortranRequired>false</fortranRequired>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -77,6 +73,7 @@
         </cCompilerTool>
         <ccCompilerTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <includeDirectories>
             <directoryPath>/usr/lib/jvm/java-6-sun/include</directoryPath>
             <directoryPath>/usr/lib/jvm/java-6-sun/include/linux</directoryPath>
@@ -86,6 +83,7 @@
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
         <linkerTool>
+          <stripSymbols>true</stripSymbols>
           <linkerLibItems>
           </linkerLibItems>
           <commandLine>-lX11</commandLine>

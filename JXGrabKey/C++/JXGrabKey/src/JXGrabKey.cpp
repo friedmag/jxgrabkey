@@ -21,6 +21,7 @@
 #include "JXGrabKey.h"
 #include <X11/Xlib.h>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -40,17 +41,23 @@ vector<KeyStruct> keys;
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
   (JNIEnv *_env, jobject _obj){
     if(debug){
-        cout << "[JXGrabKey] ++ clean()" << endl;
+        ostringstream sout;
+        sout << "++ clean()" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
     while(!isListening && !errorInListen){
         if(debug){
-            cout << "[JXGrabKey] clean() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            ostringstream sout;
+            sout << "clean() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         usleep(SLEEP_TIME*1000);
     }
     if(errorInListen){
         if(debug){
-            cout << "[JXGrabKey] clean() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            ostringstream sout;
+            sout << "clean() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         return;
     }
@@ -60,26 +67,34 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
     }
     
     if(debug){
-        cout << "[JXGrabKey] -- clean()" << endl;
+        ostringstream sout;
+        sout << "-- clean()" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
 }
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
   (JNIEnv *_env, jobject _obj, jint _id, jint _mask, jint _key){
     if(debug){
-        cout << "[JXGrabKey] ++ registerHotkey(" << std::dec << _id << ", 0x" << std::hex << _mask << ", 0x" << std::hex << _key << ")" << endl;
+        ostringstream sout;
+        sout << "++ registerHotkey(" << std::dec << _id << ", 0x" << std::hex << _mask << ", 0x" << std::hex << _key << ")" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
     
     while(!isListening && !errorInListen){
         if(debug){
-            cout << "[JXGrabKey] registerHotkey() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            ostringstream sout;
+            sout << "registerHotkey() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         usleep(SLEEP_TIME*1000);
     }
     
     if(errorInListen){
         if(debug){
-            cout << "[JXGrabKey] registerHotkey() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            ostringstream sout;
+            sout << "registerHotkey() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         return;
     }
@@ -93,64 +108,79 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
     keys.push_back(key);
     
     if(debug){
-        cout << "[JXGrabKey] registerHotkey() - converted x11Keysym '" <<  XKeysymToString(_key) << "' (0x" << std::hex << _key << ") to x11Keycode (0x" << std::hex << (int)key.key << ")" << endl;
-        
-        cout << "[JXGrabKey] registerHotkey() - found in x11Mask (0x" << std::hex << key.mask << "): ";
+        ostringstream sout;
+
+        sout << "registerHotkey() - converted x11Keysym '" <<  XKeysymToString(_key) << "' (0x" << std::hex << _key << ") to x11Keycode (0x" << std::hex << (int)key.key << ")" << endl;
+
+        sout << "registerHotkey() - found in x11Mask (0x" << std::hex << key.mask << "): ";
+
         if(key.mask & ShiftMask){
-            cout << "'Shift' ";
+            sout << "'Shift' ";
         }
         if(key.mask & LockMask){
-            cout << "'Lock' ";
+            sout << "'Lock' ";
         }
         if(key.mask & ControlMask){
-            cout << "'Control' ";
+            sout << "'Control' ";
         }
         if(key.mask & Mod1Mask){
-            cout << "'Mod1' ";
+            sout << "'Mod1' ";
         }
         if(key.mask & Mod2Mask){
-            cout << "'Mod2' ";
+            sout << "'Mod2' ";
         }
         if(key.mask & Mod3Mask){
-            cout << "'Mod3' ";
+            sout << "'Mod3' ";
         }
         if(key.mask & Mod4Mask){
-            cout << "'Mod4' ";
+            sout << "'Mod4' ";
         }
         if(key.mask & Mod5Mask){
-            cout << "'Mod5' ";
+            sout << "'Mod5' ";
         }
         
-        cout << endl;
+        sout << endl;
+
+        printToDebugCallback(_env, sout.str().c_str());
     }
 
     for (int screen = 0; screen < ScreenCount(dpy); screen++){
         int ret = XGrabKey(dpy, key.key, key.mask, RootWindow(dpy, screen), True, GrabModeAsync, GrabModeAsync);
         if(debug){
-            cout << "[JXGrabKey] registerHotkey() - XGrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")" << endl;
+            ostringstream sout;
+            sout << "registerHotkey() - XGrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
     }
     
     if(debug){
-        cout << "[JXGrabKey] -- registerHotkey()" << endl;
+        ostringstream sout;
+        sout << "-- registerHotkey()" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
 }
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
   (JNIEnv *_env, jobject _obj, jint _id){
     if(debug){
-        cout << "[JXGrabKey] ++ unregisterHotkey(" << std::dec << _id << ")" << endl;
+        ostringstream sout;
+        sout << "++ unregisterHotkey(" << std::dec << _id << ")" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
     
     while(!isListening && !errorInListen){
         if(debug){
-            cout << "[JXGrabKey] unregisterHotkey() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            ostringstream sout;
+            sout << "unregisterHotkey() - sleeping " << std::dec << SLEEP_TIME << " ms for listen() to be ready" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         usleep(SLEEP_TIME*1000);
     }
     if(errorInListen){
         if(debug){
-            cout << "[JXGrabKey] unregisterHotkey() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            ostringstream sout;
+            sout << "unregisterHotkey() - aborting because of error in listen(): errorInListen = " << std::dec << errorInListen << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         return;
     }
@@ -160,7 +190,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
             for (int screen = 0; screen < ScreenCount(dpy); screen++){
                 int ret = XUngrabKey(dpy, keys.at(i).key, keys.at(i).mask, RootWindow(dpy, screen));
                 if(debug){
-                    cout << "[JXGrabKey] unregisterHotkey() - XUngrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")" << endl;
+                    ostringstream sout;
+                    sout << "unregisterHotkey() - XUngrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")" << endl;
+                    printToDebugCallback(_env, sout.str().c_str());
                 }
             }
             keys.erase(keys.begin()+i);
@@ -169,7 +201,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
     }
     
     if(debug){
-        cout << "[JXGrabKey] -- unregisterHotkey()" << endl;
+        ostringstream sout;
+        sout << "-- unregisterHotkey()" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
 }
 
@@ -177,12 +211,16 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
   (JNIEnv *_env, jobject _obj){ 
     
     if(debug){
-        cout << "[JXGrabKey] ++ listen()" << endl;
+        ostringstream sout;
+        sout << "++ listen()" << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
     
     if(isListening){
         if(debug){
-            cout << "[JXGrabKey] listen() - WARNING: already listening, aborting: isListening = " << std::dec << isListening << endl;
+            ostringstream sout;
+            sout << "listen() - WARNING: already listening, aborting: isListening = " << std::dec << isListening << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         return;
     }
@@ -190,7 +228,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     jclass cls = _env->FindClass("jxgrabkey/JXGrabKey");
     if(cls == NULL){
         if(debug){
-            cout << "[JXGrabKey] listen() - ERROR: cannot find class jxgrabkey.JXGrabKey" << endl;
+            ostringstream sout;
+            sout << "listen() - ERROR: cannot find class jxgrabkey.JXGrabKey" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         errorInListen = true;
         return;
@@ -199,7 +239,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     jmethodID mid = _env->GetStaticMethodID(cls, "fireKeyEvent", "(I)V" );
     if(mid == NULL){
         if(debug){
-            cout << "[JXGrabKey] listen() - ERROR: cannot find method fireKeyEvent(int)" << endl;
+            ostringstream sout;
+            sout << "listen() - ERROR: cannot find method fireKeyEvent(int)" << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         errorInListen = true;
         return;
@@ -209,7 +251,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     
     if(!dpy){
         if(debug){
-            cout << "[JXGrabKey] listen() - ERROR: cannot open display " << XDisplayName(NULL) << endl;
+            ostringstream sout;
+            sout << "listen() - ERROR: cannot open display " << XDisplayName(NULL) << endl;
+            printToDebugCallback(_env, sout.str().c_str());
         }
         errorInListen = true;
         return;
@@ -220,7 +264,9 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     XEvent ev;
     
     if(debug){
-        cout << "[JXGrabKey] listen() - finished initialization on display " << XDisplayName(NULL) << endl;
+        ostringstream sout;
+        sout << "listen() - finished initialization on display " << XDisplayName(NULL) << endl;
+        printToDebugCallback(_env, sout.str().c_str());
     }
     
     while(true){
@@ -230,26 +276,26 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
         
         XNextEvent(dpy, &ev);
         if(debug){
+            ostringstream sout;
             switch(ev.type){
                 case KeyPress:
-                    cout << "[JXGrabKey] listen() - received: type = KeyPress; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state << endl;
+                    sout << "listen() - received: type = KeyPress; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state << endl;
                     break;
                 case KeyRelease:
-                    cout << "[JXGrabKey] listen() - received: type = KeyRelease; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state << endl;
+                    sout << "listen() - received: type = KeyRelease; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state << endl;
                     break;
                 default:
-                    cout << "[JXGrabKey] listen() - received unknown XEvent: type = " << std::dec << ev.type << endl;
+                    sout << "listen() - received unknown XEvent: type = " << std::dec << ev.type << endl;
             }
-            if(ev.type == KeyPress){
-                
-            }else{
-                 }
+            printToDebugCallback(_env, sout.str().c_str());
         }
         if(ev.type == KeyPress){
             for(int i = 0; i < keys.size(); i++){
                 if(ev.xkey.keycode == keys.at(i).key && ev.xkey.state == keys.at(i).mask){
                     if(debug){
-                        cout << "[JXGrabKey] listen() - found suitable key registration: id = " << std::dec << keys.at(i).id << endl;;
+                        ostringstream sout;
+                        sout << "listen() - found suitable key registration: id = " << std::dec << keys.at(i).id << endl;;
+                        printToDebugCallback(_env, sout.str().c_str());
                     }
                     _env->CallStaticVoidMethod(cls, mid, keys.at(i).id);
                     break;
@@ -276,5 +322,19 @@ const char* getErrorString(int errorCode){
             return "Success";
         default:
             return "Unknown";
+    }
+}
+
+void printToDebugCallback(JNIEnv *_env, const char* message){
+    if(debug){
+        static jclass cls = _env->FindClass("jxgrabkey/JXGrabKey");
+        static jmethodID mid = _env->GetStaticMethodID(cls, "debugCallback", "(Ljava/lang/String;)V" );
+
+        if(mid != NULL){
+            _env->CallStaticVoidMethod(cls, mid, _env->NewStringUTF(message));
+        }else{
+            cout << "DEBUG HANDLER NOT FOUND - " << message;
+            fflush(stdout);
+        }
     }
 }

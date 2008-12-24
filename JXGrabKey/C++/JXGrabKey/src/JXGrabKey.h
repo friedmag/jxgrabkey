@@ -67,6 +67,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
 
 const char* getErrorString(int);
 
+void printToDebugCallback(JNIEnv *_env, const char* message);
+
 #ifdef __cplusplus
 }
 #endif

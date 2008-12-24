@@ -78,9 +78,7 @@ public class JXGrabKey {
     
     public void registerSwingHotkey(int id, int mask, int key){
         
-        if(debug){
-            System.out.println("[JXGrabKey] ++ registerSwingHotkey()");
-        }
+        debugCallback("++ registerSwingHotkey()");
         
         int x11Mask = 0;
         
@@ -102,19 +100,13 @@ public class JXGrabKey {
         
         int keysym = X11KeysymDefinitions.SwingToX11Keysym(key);
         
-        if(debug){
-            System.out.println("[JXGrabKey] registerSwingHotkey() - converted javaKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
-        }
+        debugCallback("registerSwingHotkey() - converted javaKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
         
-        if(debug){
-            System.out.println("[JXGrabKey] registerSwingHotkey() - converted javaMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
-        }
+        debugCallback("registerSwingHotkey() - converted javaMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
         
         registerHotkey(id, x11Mask, keysym);
         
-        if(debug){
-            System.out.println("[JXGrabKey] -- registerSwingHotkey()");
-        }
+        debugCallback("-- registerSwingHotkey()");
     }
     
     public native void unregisterHotKey(int id);
@@ -134,6 +126,22 @@ public class JXGrabKey {
                 listeners.get(i).onHotkey(id);
             }else{
                 listeners.remove(i);
+            }
+        }
+    }
+
+    public static void debugCallback(String debugmessage){
+        if(debug){
+            boolean found = false;
+            for(HotkeyListener l : listeners){
+                if(l instanceof HotkeyListenerDebugEnabled){
+                    ((HotkeyListenerDebugEnabled)l).debugCallback(debugmessage);
+                    found = true;
+                }
+            }
+
+            if(found == false){
+                System.out.println(debugmessage);
             }
         }
     }

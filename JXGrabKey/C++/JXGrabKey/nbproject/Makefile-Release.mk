@@ -1,5 +1,5 @@
 #
-# Gererated Makefile - do not edit!
+# Generated Makefile - do not edit!
 #
 # Edit the Makefile in the project folder instead (../Makefile). Each target
 # has a -pre and a -post target defined where you can add customized code.
@@ -17,11 +17,14 @@ CCC=g++
 CXX=g++
 FC=
 
+# Macros
+PLATFORM=GNU-Linux-x86
+
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/Release/GNU-Linux-x86
+OBJECTDIR=build/Release/${PLATFORM}
 
 # Object Files
 OBJECTFILES= \
@@ -41,15 +44,16 @@ FFLAGS=
 LDLIBSOPTIONS=
 
 # Build Targets
-.build-conf: ${BUILD_SUBPROJECTS} dist/Release/GNU-Linux-x86/libJXGrabKey.so
+.build-conf: ${BUILD_SUBPROJECTS}
+	${MAKE}  -f nbproject/Makefile-Release.mk dist/Release/${PLATFORM}/libJXGrabKey.so
 
-dist/Release/GNU-Linux-x86/libJXGrabKey.so: ${OBJECTFILES}
-	${MKDIR} -p dist/Release/GNU-Linux-x86
-	${LINK.cc} -lX11 -shared -o dist/Release/GNU-Linux-x86/libJXGrabKey.so -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
+dist/Release/${PLATFORM}/libJXGrabKey.so: ${OBJECTFILES}
+	${MKDIR} -p dist/Release/${PLATFORM}
+	${LINK.cc} -lX11 -shared -o dist/Release/${PLATFORM}/libJXGrabKey.so -s -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/src/JXGrabKey.o: src/JXGrabKey.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.cc) -O2 -I/usr/lib/jvm/java-6-sun/include -I/usr/lib/jvm/java-6-sun/include/linux -fPIC  -o ${OBJECTDIR}/src/JXGrabKey.o src/JXGrabKey.cpp
+	$(COMPILE.cc) -O2 -s -I/usr/lib/jvm/java-6-sun/include -I/usr/lib/jvm/java-6-sun/include/linux -fPIC  -o ${OBJECTDIR}/src/JXGrabKey.o src/JXGrabKey.cpp
 
 # Subprojects
 .build-subprojects:
@@ -57,7 +61,7 @@ ${OBJECTDIR}/src/JXGrabKey.o: src/JXGrabKey.cpp
 # Clean Targets
 .clean-conf:
 	${RM} -r build/Release
-	${RM} dist/Release/GNU-Linux-x86/libJXGrabKey.so
+	${RM} dist/Release/${PLATFORM}/libJXGrabKey.so
 
 # Subprojects
 .clean-subprojects:
