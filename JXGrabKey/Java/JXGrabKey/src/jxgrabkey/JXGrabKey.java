@@ -21,6 +21,8 @@ package jxgrabkey;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JXGrabKey {
 
@@ -36,47 +38,69 @@ public class JXGrabKey {
     public static final int X11_MOD5_MASK = 1 << 7;
 
     private static JXGrabKey instance;
-    private static ArrayList<HotkeyListener> listeners;
+    private static Thread thread;
+    private static ArrayList<HotkeyListener> listeners = new ArrayList<HotkeyListener>();
 
     private JXGrabKey() {
-        listeners = new ArrayList<HotkeyListener>();
-        new Thread(){
+        thread = new Thread(){
             @Override
             public void run() {
                 listen();
-                throw new IllegalStateException("JXGrabKey library stopped with listen()!");
             }
-        }.start();
+        };
+        thread.start();
         try{
-            Thread.sleep(100);
+            Thread.sleep(100); //block a bit, so listen can init everything
         }catch(InterruptedException e){}
     }
 
     public static JXGrabKey getInstance(){
         if(instance == null){
+            debugCallback("getInstance() - instance null, initializing");
             instance = new JXGrabKey();
         }
         return instance;
     }
 
     public void addHotkeyListener(HotkeyListener listener){
+        if(listener == null){
+            throw new IllegalArgumentException("listener must not be null");
+        }
         JXGrabKey.listeners.add(listener);
     }
 
     public void removeHotkeyListener(HotkeyListener listener){
+        if(listener == null){
+            throw new IllegalArgumentException("listener must not be null");
+        }
         JXGrabKey.listeners.remove(listener);
     }
 
     public void cleanUp(){
+        debugCallback("++ cleanUp()");
         clean();
-        listeners.clear();
+        if(listeners.size() > 0){
+            if(thread.isAlive()){
+                debugCallback("cleanUp() - waiting for listen loop to stop");
+                while(thread.isAlive()){
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ex) {}
+                }
+                debugCallback("cleanUp() - listen loop stopped, setting instance to null");
+                instance = null; //next time getInstance is called, reinitialize JXGrabKey
+            }
+            debugCallback("cleanUp() - removing all listeners");
+            listeners.clear();
+        }
+        debugCallback("-- cleanUp()");
     }
 
     private native void clean();
 
     public native void registerHotkey(int id, int mask, int key);
 
-    public void registerAwtHotkey(int id, int mask, int key){
+    public void registerAWTHotkey(int id, int mask, int key){
 
         debugCallback("++ registerAWTHotkey()");
 
@@ -98,7 +122,7 @@ public class JXGrabKey {
             x11Mask |= X11_MOD5_MASK;
         }
 
-        int keysym = X11KeysymDefinitions.AwtToX11Keysym(key);
+        int keysym = X11KeysymDefinitions.AWTToX11Keysym(key);
 
         debugCallback("registerAWTHotkey() - converted AWTKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
 
@@ -122,16 +146,21 @@ public class JXGrabKey {
 
     public static void fireKeyEvent(int id){
         for(int i = 0; i < listeners.size(); i++){
-            if(listeners.get(i) != null){
-                listeners.get(i).onHotkey(id);
-            }else{
-                listeners.remove(i);
-            }
+            listeners.get(i).onHotkey(id);
         }
     }
 
     public static void debugCallback(String debugmessage){
         if(debug){
+            debugmessage.trim();
+            if(debugmessage.charAt(debugmessage.length()-1) != '\n'){
+                debugmessage += "\n";
+            }else{
+                while(debugmessage.endsWith("\n\n")){
+                    debugmessage = debugmessage.substring(0, debugmessage.length()-1);
+                }
+            }
+
             boolean found = false;
             for(HotkeyListener l : listeners){
                 if(l instanceof HotkeyListenerDebugEnabled){
@@ -141,7 +170,7 @@ public class JXGrabKey {
             }
 
             if(found == false){
-                System.out.println(debugmessage);
+                System.out.print(debugmessage);
             }
         }
     }

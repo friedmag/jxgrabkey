@@ -1,6 +1,6 @@
 /** 
  *  Usage: 
- *      JXGrabKey.getInstance().registerSwingHotkey(1,
+ *      JXGrabKey.getInstance().registerAWTHotkey(1,
  *				KeyCodeTranslator.translateSWTModifiers(SWT.CTRL),
  *				KeyCodeTranslator.translateSWTKey(SWT.F8));
  */

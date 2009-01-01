@@ -627,7 +627,7 @@ public class X11KeysymDefinitions {
     public static final int CURR_DONG = 0x20ab;
     public static final int CURR_EURO = 0x20ac;
 
-    public static int AwtToX11Keysym(int swingKeyCode){
+    public static int AWTToX11Keysym(int swingKeyCode){
         switch(swingKeyCode){
             case KeyEvent.VK_ENTER:
                 return RETURN;
