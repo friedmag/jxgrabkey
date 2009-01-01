@@ -76,9 +76,9 @@ public class JXGrabKey {
     
     public native void registerHotkey(int id, int mask, int key);
     
-    public void registerSwingHotkey(int id, int mask, int key){
+    public void registerAwtHotkey(int id, int mask, int key){
         
-        debugCallback("++ registerSwingHotkey()");
+        debugCallback("++ registerAWTHotkey()");
         
         int x11Mask = 0;
         
@@ -98,15 +98,15 @@ public class JXGrabKey {
             x11Mask |= X11_MOD5_MASK;
         }
         
-        int keysym = X11KeysymDefinitions.SwingToX11Keysym(key);
+        int keysym = X11KeysymDefinitions.AwtToX11Keysym(key);
         
-        debugCallback("registerSwingHotkey() - converted javaKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
+        debugCallback("registerAWTHotkey() - converted AWTKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
         
-        debugCallback("registerSwingHotkey() - converted javaMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
+        debugCallback("registerAWTHotkey() - converted AWTMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
         
         registerHotkey(id, x11Mask, keysym);
         
-        debugCallback("-- registerSwingHotkey()");
+        debugCallback("-- registerAWTHotkey()");
     }
     
     public native void unregisterHotKey(int id);
