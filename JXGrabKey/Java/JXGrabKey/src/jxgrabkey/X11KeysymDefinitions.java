@@ -1,4 +1,4 @@
-/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com), 
+/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com),
  *
  *  This file is part of JXGrabKey.
  *
@@ -256,7 +256,7 @@ public class X11KeysymDefinitions {
 
 
 
-    /* Japanese keyboard support. 0xff31 thru 0xff3f are under XK_KOREAN. */  
+    /* Japanese keyboard support. 0xff31 thru 0xff3f are under XK_KOREAN. */
 
     public static final int KANJI = 0xff21; /* kanji, kanji convert */
     public static final int MUHENKAN = 0xff22; /* cancel conversion */
@@ -441,8 +441,8 @@ public class X11KeysymDefinitions {
     public static final int SUPER_L = 0xffeb; /* left super */
     public static final int SUPER_R = 0xffec; /* right super */
     public static final int HYPER_L = 0xffed; /* left hyper */
-    public static final int HYPER_R = 0xffee; /* right hyper */ 
-    
+    public static final int HYPER_R = 0xffee; /* right hyper */
+
     //XKB *********************************************************************
     public static final int LOCK = 0xfe01;
     public static final int LEVEL2_LATCH = 0xfe02;
@@ -552,7 +552,7 @@ public class X11KeysymDefinitions {
     public static final int POINTER_ACCELERATE = 0xfefa;
     public static final int POINTER_DFLT_BTN_NEXT = 0xfefb;
     public static final int POINTER_DFLT_BTN_PREV = 0xfefc;
-    
+
     //XFree86 *****************************************************************
     /* ModeLock. This one is old, and not really used any more since XKB
     * offers this functionality.
@@ -610,8 +610,8 @@ public class X11KeysymDefinitions {
     public static final int MY_COMPUTER = 0x1008ff33;
     public static final int VENDOR_HOME = 0x1008ff34;
     public static final int LIGHT_BULB = 0x1008ff35;
-    public static final int SHOP = 0x1008ff36;  
-    
+    public static final int SHOP = 0x1008ff36;
+
     //Currency ****************************************************************
     public static final int CURR_ECU = 0x20a0;
     public static final int CURR_COLON = 0x20a1;
@@ -626,7 +626,7 @@ public class X11KeysymDefinitions {
     public static final int CURR_NEW_SHEQEL = 0x20aa;
     public static final int CURR_DONG = 0x20ab;
     public static final int CURR_EURO = 0x20ac;
-    
+
     public static int AwtToX11Keysym(int swingKeyCode){
         switch(swingKeyCode){
             case KeyEvent.VK_ENTER:
@@ -866,37 +866,37 @@ public class X11KeysymDefinitions {
             case KeyEvent.VK_KP_RIGHT:
                 return KP_RIGHT;
             case KeyEvent.VK_DEAD_GRAVE:
-                return DEAD_GRAVE; 
+                return DEAD_GRAVE;
             case KeyEvent.VK_DEAD_ACUTE:
-                return DEAD_ACUTE; 
+                return DEAD_ACUTE;
             case KeyEvent.VK_DEAD_CIRCUMFLEX:
-                return DEAD_CIRCUMFLEX; 
+                return DEAD_CIRCUMFLEX;
             case KeyEvent.VK_DEAD_TILDE:
-                return DEAD_TILDE; 
+                return DEAD_TILDE;
             case KeyEvent.VK_DEAD_MACRON:
-                return DEAD_MACRON; 
+                return DEAD_MACRON;
             case KeyEvent.VK_DEAD_BREVE:
-                return DEAD_BREVE; 
+                return DEAD_BREVE;
             case KeyEvent.VK_DEAD_ABOVEDOT:
-                return DEAD_ABOVEDOT; 
+                return DEAD_ABOVEDOT;
             case KeyEvent.VK_DEAD_DIAERESIS:
-                return DEAD_DIAERESIS; 
+                return DEAD_DIAERESIS;
             case KeyEvent.VK_DEAD_ABOVERING:
-                return DEAD_ABOVERING; 
+                return DEAD_ABOVERING;
             case KeyEvent.VK_DEAD_DOUBLEACUTE:
-                return DEAD_DOUBLEACUTE; 
+                return DEAD_DOUBLEACUTE;
             case KeyEvent.VK_DEAD_CARON:
-                return DEAD_CARON; 
+                return DEAD_CARON;
             case KeyEvent.VK_DEAD_CEDILLA:
-                return DEAD_CEDILLA; 
+                return DEAD_CEDILLA;
             case KeyEvent.VK_DEAD_OGONEK:
-                return DEAD_OGONEK; 
+                return DEAD_OGONEK;
             case KeyEvent.VK_DEAD_IOTA:
-                return DEAD_IOTA; 
+                return DEAD_IOTA;
             case KeyEvent.VK_DEAD_VOICED_SOUND:
-                return DEAD_VOICED_SOUND; 
+                return DEAD_VOICED_SOUND;
             case KeyEvent.VK_DEAD_SEMIVOICED_SOUND:
-                return DEAD_SEMIVOICED_SOUND; 
+                return DEAD_SEMIVOICED_SOUND;
             case KeyEvent.VK_AMPERSAND:
                 return AMPERSAND;
             case KeyEvent.VK_ASTERISK:
@@ -1009,7 +1009,4 @@ public class X11KeysymDefinitions {
                 return 0;
         }
     }
-    
-  
-  
 }

@@ -1,4 +1,4 @@
-/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com), 
+/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com),
  *
  *  This file is part of JXGrabKey.
  *
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 public class JXGrabKey {
 
     private static boolean debug = false;
-    
+
     public static final int X11_SHIFT_MASK = 1 << 0;
     public static final int X11_LOCK_MASK = 1 << 1;
     public static final int X11_CONTROL_MASK = 1 << 2;
@@ -34,10 +34,10 @@ public class JXGrabKey {
     public static final int X11_MOD3_MASK = 1 << 5;
     public static final int X11_MOD4_MASK = 1 << 6;
     public static final int X11_MOD5_MASK = 1 << 7;
-    
+
     private static JXGrabKey instance;
     private static ArrayList<HotkeyListener> listeners;
-    
+
     private JXGrabKey() {
         listeners = new ArrayList<HotkeyListener>();
         new Thread(){
@@ -51,37 +51,37 @@ public class JXGrabKey {
             Thread.sleep(100);
         }catch(InterruptedException e){}
     }
-    
+
     public static JXGrabKey getInstance(){
         if(instance == null){
             instance = new JXGrabKey();
-        }        
+        }
         return instance;
     }
-    
+
     public void addHotkeyListener(HotkeyListener listener){
         JXGrabKey.listeners.add(listener);
     }
-    
+
     public void removeHotkeyListener(HotkeyListener listener){
         JXGrabKey.listeners.remove(listener);
     }
-    
+
     public void cleanUp(){
         clean();
         listeners.clear();
     }
-    
+
     private native void clean();
-    
+
     public native void registerHotkey(int id, int mask, int key);
-    
+
     public void registerAwtHotkey(int id, int mask, int key){
-        
+
         debugCallback("++ registerAWTHotkey()");
-        
+
         int x11Mask = 0;
-        
+
         if ((mask & InputEvent.SHIFT_MASK) != 0) {
             x11Mask |= X11_SHIFT_MASK;
         }
@@ -97,29 +97,29 @@ public class JXGrabKey {
         if ((mask & InputEvent.ALT_GRAPH_MASK) != 0) {
             x11Mask |= X11_MOD5_MASK;
         }
-        
+
         int keysym = X11KeysymDefinitions.AwtToX11Keysym(key);
-        
+
         debugCallback("registerAWTHotkey() - converted AWTKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
-        
+
         debugCallback("registerAWTHotkey() - converted AWTMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
-        
+
         registerHotkey(id, x11Mask, keysym);
-        
+
         debugCallback("-- registerAWTHotkey()");
     }
-    
+
     public native void unregisterHotKey(int id);
-    
+
     public native void listen();
-    
+
     private static native void setDebug(boolean debug);
-    
+
     public static void setDebugOutput(boolean enabled){
         debug = enabled;
         setDebug(enabled);
     }
-    
+
     public static void fireKeyEvent(int id){
         for(int i = 0; i < listeners.size(); i++){
             if(listeners.get(i) != null){
@@ -145,5 +145,5 @@ public class JXGrabKey {
             }
         }
     }
-    
+
 }
