@@ -20,7 +20,7 @@ package jxgrabkey;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
+import java.util.Vector;
 
 public class JXGrabKey {
 
@@ -37,7 +37,7 @@ public class JXGrabKey {
 
     private static JXGrabKey instance;
     private static Thread thread;
-    private static ArrayList<HotkeyListener> listeners = new ArrayList<HotkeyListener>();
+    private static Vector<HotkeyListener> listeners = new Vector<HotkeyListener>();
 
     private JXGrabKey() {
         thread = new Thread(){
@@ -54,7 +54,6 @@ public class JXGrabKey {
 
     public static JXGrabKey getInstance(){
         if(instance == null){
-            //debugCallback("getInstance() - instance null, initializing");
             instance = new JXGrabKey();
         }
         return instance;
@@ -75,23 +74,18 @@ public class JXGrabKey {
     }
 
     public void cleanUp(){
-        //debugCallback("++ cleanUp()");
         clean();
         if(listeners.size() > 0){
             if(thread.isAlive()){
-                //debugCallback("cleanUp() - waiting for listen loop to stop");
                 while(thread.isAlive()){
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException ex) {}
                 }
-                //debugCallback("cleanUp() - listen loop stopped, setting instance to null");
                 instance = null; //next time getInstance is called, reinitialize JXGrabKey
             }
-            //debugCallback("cleanUp() - removing all listeners");
             listeners.clear();
         }
-        //debugCallback("-- cleanUp()");
     }
 
     private native void clean();

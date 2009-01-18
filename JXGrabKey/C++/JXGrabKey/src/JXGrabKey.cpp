@@ -23,7 +23,6 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <pthread.h>
 
 using namespace std;
 
@@ -39,8 +38,6 @@ bool isListening = false;
 bool errorInListen = false;
 bool doListen = true;
 vector<KeyStruct> keys;
-
-pthread_spinlock_t x_lock;
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
   (JNIEnv *_env, jobject _obj){
@@ -117,8 +114,6 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
             break;
         }
     }
-
-    pthread_spin_lock(&x_lock);
     
     struct KeyStruct key;
     key.id = _id;
@@ -162,17 +157,6 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
 
         printToDebugCallback(_env, sout.str().c_str());
     }
-
-    for (int screen = 0; screen < ScreenCount(dpy); screen++){
-        int ret = XGrabKey(dpy, key.key, key.mask, RootWindow(dpy, screen), True, GrabModeAsync, GrabModeAsync);
-        if(debug){
-            ostringstream sout;
-            sout << "registerHotkey() - XGrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")";
-            printToDebugCallback(_env, sout.str().c_str());
-        }
-    }
-
-    pthread_spin_unlock(&x_lock);
     
     if(debug){
         ostringstream sout;
@@ -205,25 +189,13 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
         }
         return;
     }
-
-    pthread_spin_lock(&x_lock);
     
     for(int i = 0; i < keys.size(); i++){
         if(keys.at(i).id == _id){
-            for (int screen = 0; screen < ScreenCount(dpy); screen++){
-                int ret = XUngrabKey(dpy, keys.at(i).key, keys.at(i).mask, RootWindow(dpy, screen));
-                if(debug){
-                    ostringstream sout;
-                    sout << "unregisterHotkey() - XUngrabKey() returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")";
-                    printToDebugCallback(_env, sout.str().c_str());
-                }
-            }
             keys.erase(keys.begin()+i);
             break;
         }
     }
-
-    pthread_spin_unlock(&x_lock);
     
     if(debug){
         ostringstream sout;
@@ -284,7 +256,14 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
         return;
     }
 
-    pthread_spin_init(&x_lock, NULL); // init here bcoz of the returns
+    for (int screen = 0; screen < ScreenCount(dpy); screen++){
+        int ret = XGrabKeyboard(dpy, RootWindow(dpy, screen), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+        if(debug){
+            ostringstream sout;
+            sout << "listen() - XGrabKeyboard() on screen " << screen << " returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")";
+            printToDebugCallback(_env, sout.str().c_str());
+        }
+    }
 
     doListen = true;
     isListening = true;
@@ -299,44 +278,19 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 
     while(doListen){
 
-        while(doListen){ //Don't block on XNextEvent(), this breaks XGrabKey()!
-
-            pthread_spin_lock(&x_lock);
-            bool pending = XPending(dpy);
-            pthread_spin_unlock(&x_lock);
-
-            if(pending){
-                break;
-            }else{
-                usleep(SLEEP_TIME*1000);
-            }
+        while(!XPending(dpy) && doListen){ //Don't block on XNextEvent(), this breaks XGrabKey()!
+            usleep(SLEEP_TIME*1000);
         }
 
         if(doListen){
-            pthread_spin_lock(&x_lock);
             XNextEvent(dpy, &ev);
-            pthread_spin_unlock(&x_lock);
             
-            if(debug){
-                ostringstream sout;
-                switch(ev.type){
-                    case KeyPress:
-                        sout << "listen() - received: type = KeyPress; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state;
-                        break;
-                    case KeyRelease:
-                        sout << "listen() - received: type = KeyRelease; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state;
-                        break;
-                    default:
-                        sout << "listen() - received unknown XEvent: type = " << std::dec << ev.type;
-                }
-                printToDebugCallback(_env, sout.str().c_str());
-            }
             if(ev.type == KeyPress){
                 for(int i = 0; i < keys.size(); i++){
                     if(ev.xkey.keycode == keys.at(i).key && ev.xkey.state == keys.at(i).mask){
                         if(debug){
                             ostringstream sout;
-                            sout << "listen() - found suitable key registration: id = " << std::dec << keys.at(i).id;
+                            sout << "listen() - received: id = " << std::dec << keys.at(i).id << "; type = KeyPress; x11Keycode = '" << XKeysymToString(XKeycodeToKeysym(dpy, ev.xkey.keycode, 0)) << "' (0x" << std::hex << ev.xkey.keycode << "); x11Mask = 0x" << std::hex << ev.xkey.state << endl;
                             printToDebugCallback(_env, sout.str().c_str());
                         }
                         _env->CallStaticVoidMethod(cls, mid, keys.at(i).id);
@@ -349,11 +303,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 
     isListening = false;
 
-    pthread_spin_lock(&x_lock);
+    XUngrabKeyboard(dpy, CurrentTime);
     XCloseDisplay(dpy);
-    pthread_spin_unlock(&x_lock);
-    
-    pthread_spin_destroy(&x_lock);
 
     if(debug){
         ostringstream sout;
@@ -369,14 +320,16 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
 
 const char* getErrorString(int errorCode){
     switch(errorCode){
-        case BadAccess:
-            return "BadAccess";
-        case BadValue:
-            return "BadValue";
-        case BadWindow:
-            return "BadWindow";
-        case 1:
-            return "Success";
+        case GrabSuccess:
+            return "GrabSuccess";
+        case AlreadyGrabbed:
+            return "AlreadyGrabbed";
+        case GrabNotViewable:
+            return "GrabNotViewable";
+        case GrabFrozen:
+            return "GrabFrozen";
+        case GrabInvalidTime:
+            return "GrabInvalidTime";
         default:
             return "Unknown";
     }

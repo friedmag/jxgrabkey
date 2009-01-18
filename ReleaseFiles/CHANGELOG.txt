@@ -1,3 +1,8 @@
+2009/1/18: JXGrabKey 0.1.2
+- changed implementation to use XGrabKeyboard instead of XGrabKey as XGrabKey causes 
+  crashes if the specified key was already registered by another application 
+  -> see bug 2440751 (CTRL+F8 on Xubuntu)
+
 2009/1/1: JXGrabKey 0.1.1
 - jxgrabkey now terminating properly when cleanUp is called
 - renamed registerSwingHotkey to registerAWTHotkey, because it is more technically correct
