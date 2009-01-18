@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <pthread.h>
 
 using namespace std;
 
@@ -38,6 +39,8 @@ bool isListening = false;
 bool errorInListen = false;
 bool doListen = true;
 vector<KeyStruct> keys;
+
+pthread_spinlock_t x_lock;
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
   (JNIEnv *_env, jobject _obj){
@@ -114,6 +117,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
             break;
         }
     }
+
+    pthread_spin_lock(&x_lock);
     
     struct KeyStruct key;
     key.id = _id;
@@ -126,7 +131,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
     if(debug){
         ostringstream sout;
 
-        sout << "registerHotkey() - converted x11Keysym '" <<  XKeysymToString(_key) << "' (0x" << std::hex << _key << ") to x11Keycode (0x" << std::hex << (int)key.key << ")";
+        sout << "registerHotkey() - converted x11Keysym '" <<  XKeysymToString(_key) << "' (0x" << std::hex << _key << ") to x11Keycode (0x" << std::hex << (int)key.key << ")" << endl;
 
         sout << "registerHotkey() - found in x11Mask (0x" << std::hex << key.mask << "): ";
 
@@ -166,6 +171,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
             printToDebugCallback(_env, sout.str().c_str());
         }
     }
+
+    pthread_spin_unlock(&x_lock);
     
     if(debug){
         ostringstream sout;
@@ -198,6 +205,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
         }
         return;
     }
+
+    pthread_spin_lock(&x_lock);
     
     for(int i = 0; i < keys.size(); i++){
         if(keys.at(i).id == _id){
@@ -213,6 +222,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
             break;
         }
     }
+
+    pthread_spin_unlock(&x_lock);
     
     if(debug){
         ostringstream sout;
@@ -223,7 +234,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
   (JNIEnv *_env, jobject _obj){ 
-    
+
     if(debug){
         ostringstream sout;
         sout << "++ listen()";
@@ -273,6 +284,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
         return;
     }
 
+    pthread_spin_init(&x_lock, NULL); // init here bcoz of the returns
+
     doListen = true;
     isListening = true;
 
@@ -286,12 +299,24 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 
     while(doListen){
 
-        while(!XPending(dpy) && doListen){ //Don't block on XNextEvent(), this breaks XGrabKey()!
-            usleep(SLEEP_TIME*1000);
+        while(doListen){ //Don't block on XNextEvent(), this breaks XGrabKey()!
+
+            pthread_spin_lock(&x_lock);
+            bool pending = XPending(dpy);
+            pthread_spin_unlock(&x_lock);
+
+            if(pending){
+                break;
+            }else{
+                usleep(SLEEP_TIME*1000);
+            }
         }
 
         if(doListen){
+            pthread_spin_lock(&x_lock);
             XNextEvent(dpy, &ev);
+            pthread_spin_unlock(&x_lock);
+            
             if(debug){
                 ostringstream sout;
                 switch(ev.type){
@@ -323,7 +348,13 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     }
 
     isListening = false;
+
+    pthread_spin_lock(&x_lock);
+    XCloseDisplay(dpy);
+    pthread_spin_unlock(&x_lock);
     
+    pthread_spin_destroy(&x_lock);
+
     if(debug){
         ostringstream sout;
         sout << "-- listen()";

@@ -21,8 +21,6 @@ package jxgrabkey;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class JXGrabKey {
 
@@ -56,7 +54,7 @@ public class JXGrabKey {
 
     public static JXGrabKey getInstance(){
         if(instance == null){
-            debugCallback("getInstance() - instance null, initializing");
+            //debugCallback("getInstance() - instance null, initializing");
             instance = new JXGrabKey();
         }
         return instance;
@@ -77,23 +75,23 @@ public class JXGrabKey {
     }
 
     public void cleanUp(){
-        debugCallback("++ cleanUp()");
+        //debugCallback("++ cleanUp()");
         clean();
         if(listeners.size() > 0){
             if(thread.isAlive()){
-                debugCallback("cleanUp() - waiting for listen loop to stop");
+                //debugCallback("cleanUp() - waiting for listen loop to stop");
                 while(thread.isAlive()){
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException ex) {}
                 }
-                debugCallback("cleanUp() - listen loop stopped, setting instance to null");
+                //debugCallback("cleanUp() - listen loop stopped, setting instance to null");
                 instance = null; //next time getInstance is called, reinitialize JXGrabKey
             }
-            debugCallback("cleanUp() - removing all listeners");
+            //debugCallback("cleanUp() - removing all listeners");
             listeners.clear();
         }
-        debugCallback("-- cleanUp()");
+        //debugCallback("-- cleanUp()");
     }
 
     private native void clean();
