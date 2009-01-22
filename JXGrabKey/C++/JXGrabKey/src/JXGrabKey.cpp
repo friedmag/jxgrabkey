@@ -19,7 +19,6 @@
 #define SLEEP_TIME 100
 
 #include "JXGrabKey.h"
-#include <X11/Xlib.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -41,6 +40,7 @@ vector<KeyStruct> keys;
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
   (JNIEnv *_env, jobject _obj){
+
     if(debug){
         ostringstream sout;
         sout << "++ clean()";
@@ -84,6 +84,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
   (JNIEnv *_env, jobject _obj, jint _id, jint _mask, jint _key){
+
     if(debug){
         ostringstream sout;
         sout << "++ registerHotkey(" << std::dec << _id << ", 0x" << std::hex << _mask << ", 0x" << std::hex << _key << ")";
@@ -157,6 +158,16 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
 
         printToDebugCallback(_env, sout.str().c_str());
     }
+
+    for (int screen = 0; screen < ScreenCount(dpy); screen++){
+        int ret = XGrabKey(dpy, key.key, key.mask, RootWindow(dpy, screen), True, GrabModeAsync, GrabModeAsync);
+        if(debug){
+            ostringstream sout;
+            sout << "registerHotkey() - XGrabKey() on screen " << screen << " returned "<< std::dec << ret;
+            printToDebugCallback(_env, sout.str().c_str());
+        }
+    }
+
     
     if(debug){
         ostringstream sout;
@@ -167,6 +178,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
   (JNIEnv *_env, jobject _obj, jint _id){
+
     if(debug){
         ostringstream sout;
         sout << "++ unregisterHotkey(" << std::dec << _id << ")";
@@ -192,6 +204,14 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
     
     for(int i = 0; i < keys.size(); i++){
         if(keys.at(i).id == _id){
+            for (int screen = 0; screen < ScreenCount(dpy); screen++){
+                int ret = XUngrabKey(dpy, keys.at(i).key, keys.at(i).mask, RootWindow(dpy, screen));
+                if(debug){
+                    ostringstream sout;
+                    sout << "unregisterHotkey() - XUngrabKey() on screen " << screen << " returned "<< std::dec << ret;
+                    printToDebugCallback(_env, sout.str().c_str());
+                }
+            }
             keys.erase(keys.begin()+i);
             break;
         }
@@ -256,7 +276,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
         return;
     }
     
-    XAllowEvents (dpy, AsyncBoth, CurrentTime);
+    XAllowEvents(dpy, AsyncKeyboard, CurrentTime);
 
     for (int screen = 0; screen < ScreenCount(dpy); screen++){
         int ret = XSelectInput(dpy, RootWindow(dpy, screen), KeyPressMask);
@@ -266,6 +286,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
             printToDebugCallback(_env, sout.str().c_str());
         }
     }
+
+    XSetErrorHandler((XErrorHandler) xErrorHandler);
 
     doListen = true;
     isListening = true;
@@ -323,12 +345,24 @@ void printToDebugCallback(JNIEnv *_env, const char* message){
     if(debug){
         static jclass cls = _env->FindClass("jxgrabkey/JXGrabKey");
         static jmethodID mid = _env->GetStaticMethodID(cls, "debugCallback", "(Ljava/lang/String;)V" );
+        static JNIEnv *env = _env;
 
         if(mid != NULL){
-            _env->CallStaticVoidMethod(cls, mid, _env->NewStringUTF(message));
+            env->CallStaticVoidMethod(cls, mid, env->NewStringUTF(message));
         }else{
             cout << "JAVA DEBUG CALLBACK NOT FOUND - " << message << endl;
             fflush(stdout);
         }
     }
+}
+
+
+static int *xErrorHandler (Display *_dpy, XErrorEvent *_event)
+{
+    if(debug){
+        ostringstream sout;
+        sout << "xErrorHandler() - There seems to be a conflict with one of the assigned hotkeys. Each hotkey can only be grabbed by one application at a time!";
+        printToDebugCallback(NULL, sout.str().c_str());
+    }
+    return NULL;
 }
