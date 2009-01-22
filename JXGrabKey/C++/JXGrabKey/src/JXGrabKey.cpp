@@ -255,12 +255,14 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
         errorInListen = true;
         return;
     }
+    
+    XAllowEvents (dpy, AsyncBoth, CurrentTime);
 
     for (int screen = 0; screen < ScreenCount(dpy); screen++){
-        int ret = XGrabKeyboard(dpy, RootWindow(dpy, screen), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+        int ret = XSelectInput(dpy, RootWindow(dpy, screen), KeyPressMask);
         if(debug){
             ostringstream sout;
-            sout << "listen() - XGrabKeyboard() on screen " << screen << " returned '" << getErrorString(ret) << "' (" << std::dec << ret << ")";
+            sout << "listen() - XSelectInput() on screen " << screen << " returned '" << std::dec << ret;
             printToDebugCallback(_env, sout.str().c_str());
         }
     }
@@ -303,7 +305,6 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 
     isListening = false;
 
-    XUngrabKeyboard(dpy, CurrentTime);
     XCloseDisplay(dpy);
 
     if(debug){
@@ -316,23 +317,6 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
   (JNIEnv *_env, jobject _obj, jboolean _debug){
     debug = _debug;
-}
-
-const char* getErrorString(int errorCode){
-    switch(errorCode){
-        case GrabSuccess:
-            return "GrabSuccess";
-        case AlreadyGrabbed:
-            return "AlreadyGrabbed";
-        case GrabNotViewable:
-            return "GrabNotViewable";
-        case GrabFrozen:
-            return "GrabFrozen";
-        case GrabInvalidTime:
-            return "GrabInvalidTime";
-        default:
-            return "Unknown";
-    }
 }
 
 void printToDebugCallback(JNIEnv *_env, const char* message){
