@@ -1,6 +1,9 @@
 import java.awt.event.KeyEvent;
 import java.io.File;
 
+import javax.swing.JOptionPane;
+
+import jxgrabkey.HotkeyConflictException;
 import jxgrabkey.HotkeyListener;
 import jxgrabkey.JXGrabKey;
 
@@ -16,10 +19,18 @@ public class JXGrabKeyTest {
 		//Enable Debug Output
 		JXGrabKey.setDebugOutput(true);
 		
-		//Register some Hotkey (CTRL+ALT+SHIFT+K)
-		JXGrabKey.getInstance().registerAWTHotkey(MY_HOTKEY_INDEX,
-				KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK | KeyEvent.SHIFT_MASK,
-				KeyEvent.VK_K);
+		//Register some Hotkey
+		try{
+			//int key = KeyEvent.VK_K, mask = KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK | KeyEvent.SHIFT_MASK;
+			int key = KeyEvent.VK_F2, mask = KeyEvent.ALT_MASK; //Conflicts on GNOME
+			
+			JXGrabKey.getInstance().registerAWTHotkey(MY_HOTKEY_INDEX, mask, key);
+		}catch(HotkeyConflictException e){
+			JOptionPane.showMessageDialog(null, e.getMessage(), e.getClass().getName(), JOptionPane.ERROR_MESSAGE);
+			
+			JXGrabKey.getInstance().cleanUp(); //Automatically unregisters Hotkeys and Listeners
+			return;
+		}
 				
 		//Implement HotkeyListener
 		HotkeyListener hotkeyListener = new jxgrabkey.HotkeyListener(){
@@ -39,8 +50,8 @@ public class JXGrabKeyTest {
 		}
 		
 		// Shutdown JXGrabKey
-		JXGrabKey.getInstance().unregisterHotKey(MY_HOTKEY_INDEX);
-		JXGrabKey.getInstance().removeHotkeyListener(hotkeyListener);
+		JXGrabKey.getInstance().unregisterHotKey(MY_HOTKEY_INDEX); //Optional
+		JXGrabKey.getInstance().removeHotkeyListener(hotkeyListener); //Optional
 		JXGrabKey.getInstance().cleanUp();
 	}
 }

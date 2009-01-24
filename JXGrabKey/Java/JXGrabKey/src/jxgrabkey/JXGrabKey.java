@@ -90,9 +90,9 @@ public class JXGrabKey {
 
     private native void clean();
 
-    public native void registerHotkey(int id, int mask, int key);
+    public native void registerHotkey(int id, int mask, int key) throws HotkeyConflictException;
 
-    public void registerAWTHotkey(int id, int mask, int key){
+    public void registerAWTHotkey(int id, int mask, int key) throws HotkeyConflictException{
 
         debugCallback("++ registerAWTHotkey()");
 

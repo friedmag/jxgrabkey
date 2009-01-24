@@ -16,6 +16,10 @@
  *  along with JXGrabKey.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <X11/Xlib.h>
+#include <streambuf>
+
+
 #define SLEEP_TIME 100
 
 #include "JXGrabKey.h"
@@ -32,11 +36,13 @@ struct KeyStruct {
 };
 
 Display *dpy;
+vector<KeyStruct> keys;
 bool debug = false;
 bool isListening = false;
 bool errorInListen = false;
 bool doListen = true;
-vector<KeyStruct> keys;
+bool registerHotkeyIsWaitingForException = false;
+bool registerHotkeyHasException = false;
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean
   (JNIEnv *_env, jobject _obj){
@@ -168,6 +174,32 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
         }
     }
 
+    //Flush X to receive errors
+    registerHotkeyIsWaitingForException = true;
+    XSync(dpy, false);
+    if(registerHotkeyHasException){
+        ostringstream message;
+        message << "Unable to register hotkey with id = " << _id << ". Each hotkey combination can only be grabbed by one application at a time!";
+
+        jclass cls = _env->FindClass("jxgrabkey/HotkeyConflictException");
+        if(cls != NULL){
+            _env->ThrowNew(cls, message.str().c_str());
+            //Don't print anything to console until function return,
+            //or else java will not register the exception!
+        }else{
+            if(debug){
+                ostringstream sout;
+                sout << "registerHotkey() - Unable to throw HotkeyConflictException, class not found!";
+                sout << " - " << message.str().c_str();
+                printToDebugCallback(NULL, sout.str().c_str());
+            }
+        }
+    }
+    registerHotkeyIsWaitingForException = false;
+    if(registerHotkeyHasException){
+        registerHotkeyHasException = false;
+        return;
+    }
     
     if(debug){
         ostringstream sout;
@@ -343,14 +375,19 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
 
 void printToDebugCallback(JNIEnv *_env, const char* message){
     if(debug){
-        static jclass cls = _env->FindClass("jxgrabkey/JXGrabKey");
-        static jmethodID mid = _env->GetStaticMethodID(cls, "debugCallback", "(Ljava/lang/String;)V" );
         static JNIEnv *env = _env;
+        if(env != NULL){
+            static jclass cls = env->FindClass("jxgrabkey/JXGrabKey");
+            static jmethodID mid = env->GetStaticMethodID(cls, "debugCallback", "(Ljava/lang/String;)V" );
 
-        if(mid != NULL){
-            env->CallStaticVoidMethod(cls, mid, env->NewStringUTF(message));
+            if(mid != NULL){
+                env->CallStaticVoidMethod(cls, mid, env->NewStringUTF(message));
+            }else{
+                cout << "JAVA DEBUG CALLBACK NOT FOUND - " << message << endl;
+                fflush(stdout);
+            }
         }else{
-            cout << "JAVA DEBUG CALLBACK NOT FOUND - " << message << endl;
+            cout << "JAVA DEBUG CALLBACK NOT INITIALIZED - " << message << endl;
             fflush(stdout);
         }
     }
@@ -359,9 +396,20 @@ void printToDebugCallback(JNIEnv *_env, const char* message){
 
 static int *xErrorHandler (Display *_dpy, XErrorEvent *_event)
 {
+    if(registerHotkeyIsWaitingForException){
+        //The exception has to be thrown in registerHotkey,
+        //coz this functions runs in a different thread!
+        registerHotkeyHasException = true;
+    }
+
     if(debug){
         ostringstream sout;
-        sout << "xErrorHandler() - There seems to be a conflict with one of the assigned hotkeys. Each hotkey can only be grabbed by one application at a time!";
+        sout << "xErrorHandler() - Caught error: serial = " << std::dec << _event->serial;
+        sout << "; resourceid = " << std::dec << _event->resourceid;
+        sout << "; type = " << std::dec << _event->type;
+        sout << "; error_code = " << std::dec << (int)_event->error_code;
+        sout << "; request_code = " << std::dec << (int)_event->request_code;
+        sout << "; minor_code = " << std::dec << (int)_event->minor_code;
         printToDebugCallback(NULL, sout.str().c_str());
     }
     return NULL;
