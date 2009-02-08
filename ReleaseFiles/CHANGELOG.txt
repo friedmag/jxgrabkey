@@ -1,17 +1,20 @@
-2009/1/24: JXGrabKey 0.2.0
+2009/02/08: JXGrabKey 0.2.1
+- numlock, scrollock and capslock now get ignored
+
+2009/01/24: JXGrabKey 0.2.0
 - when a Hotkey is already occupied by another application, 
   JXGrabKey now throws a HotkeyConflictException on registerHotkey
 
-2009/1/23: JXGrabKey 0.1.3
+2009/01/23: JXGrabKey 0.1.3
 - 0.1.2 did not fix the issue properly, reverted back to XGrabKey method
 - implemented XErrorHandler, which solved the issue by catching the error
 
-2009/1/18: JXGrabKey 0.1.2
+2009/01/18: JXGrabKey 0.1.2
 - changed implementation to use XGrabKeyboard instead of XGrabKey as XGrabKey causes 
   crashes if the specified key was already registered by another application 
   -> see bug 2440751 (CTRL+F8 on Xubuntu)
 
-2009/1/1: JXGrabKey 0.1.1
+2009/01/01: JXGrabKey 0.1.1
 - jxgrabkey now terminating properly when cleanUp is called
 - renamed registerSwingHotkey to registerAWTHotkey, because it is more technically correct
 

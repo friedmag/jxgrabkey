@@ -66,6 +66,8 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
   (JNIEnv *, jobject, jboolean);
 
+void getOffendingModifiers(Display* _dpy);
+
 static int *xErrorHandler(Display *_dpy, XErrorEvent *_event);
 
 void printToDebugCallback(JNIEnv *_env, const char* message);
