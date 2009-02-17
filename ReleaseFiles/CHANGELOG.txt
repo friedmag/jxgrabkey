@@ -1,3 +1,6 @@
+2009/02/17: JXGrabKey 0.2.2
+- keys now working properly again with the ignore fix from last version
+
 2009/02/08: JXGrabKey 0.2.1
 - numlock, scrollock and capslock now get ignored
 

@@ -29,12 +29,6 @@
 
 using namespace std;
 
-struct KeyStruct {
-    int id;
-    KeyCode key;
-    Mask mask;
-};
-
 Display *dpy;
 vector<KeyStruct> keys;
 bool debug = false;
@@ -169,14 +163,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III
         printToDebugCallback(_env, sout.str().c_str());
     }
 
-    for (int screen = 0; screen < ScreenCount(dpy); screen++) {
-        int ret = XGrabKey(dpy, key.key, AnyModifier, RootWindow(dpy, screen), True, GrabModeAsync, GrabModeAsync);
-        if (debug) {
-            ostringstream sout;
-            sout << "registerHotkey() - XGrabKey() on screen " << screen << " returned " << std::dec << ret;
-            printToDebugCallback(_env, sout.str().c_str());
-        }
-    }
+    grabKey(_env, key);
 
     //Flush X to receive errors
     registerHotkeyIsWaitingForException = true;
@@ -240,14 +227,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey
 
     for (int i = 0; i < keys.size(); i++) {
         if (keys.at(i).id == _id) {
-            for (int screen = 0; screen < ScreenCount(dpy); screen++) {
-                int ret = XUngrabKey(dpy, keys.at(i).key, keys.at(i).mask, RootWindow(dpy, screen));
-                if (debug) {
-                    ostringstream sout;
-                    sout << "unregisterHotkey() - XUngrabKey() on screen " << screen << " returned " << std::dec << ret;
-                    printToDebugCallback(_env, sout.str().c_str());
-                }
-            }
+            unGrabKey(_env, keys.at(i));
             keys.erase(keys.begin() + i);
             break;
         }
@@ -348,7 +328,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
 
             if (ev.type == KeyPress) {
                 for (int i = 0; i < keys.size(); i++) {
-                    ev.xkey.state &= ~(numlock_mask | capslock_mask | scrolllock_mask); //Filter
+                    ev.xkey.state &= ~(numlock_mask | capslock_mask | scrolllock_mask); //Filter offending modifiers
                     if (ev.xkey.keycode == keys.at(i).key && ev.xkey.state == keys.at(i).mask) {
                         if (debug) {
                             ostringstream sout;
@@ -448,4 +428,84 @@ static int *xErrorHandler(Display *_dpy, XErrorEvent *_event) {
         printToDebugCallback(NULL, sout.str().c_str());
     }
     return NULL;
+}
+
+void grabKey(JNIEnv *_env, KeyStruct key){
+    Mask modifierCombinations[] = {
+        key.mask,
+        key.mask | numlock_mask,
+        key.mask | scrolllock_mask,
+        key.mask | capslock_mask,
+        key.mask | numlock_mask | scrolllock_mask,
+        key.mask | numlock_mask | capslock_mask,
+        key.mask | scrolllock_mask | capslock_mask,
+        key.mask | numlock_mask | scrolllock_mask | capslock_mask
+    };
+
+    ostringstream sout;
+    if (debug) {
+        sout << "grabKey() - XGrabKey()";
+    }
+
+    for (int screen = 0; screen < ScreenCount(dpy); screen++) {
+        if(debug){
+            sout << " on screen " << screen << ":";
+        }
+        for(int m = 0; m < 8; m++){
+            int ret = XGrabKey(dpy, key.key, modifierCombinations[m], RootWindow(dpy, screen), True, GrabModeAsync, GrabModeAsync);
+            if(debug){
+                sout << " " << ret;
+                if(m != 7){
+                    sout << ",";
+                }
+            }
+        }
+        if(debug){
+            sout << ";";
+        }
+    }
+
+    if(debug){
+        printToDebugCallback(_env, sout.str().c_str());
+    }
+}
+
+void unGrabKey(JNIEnv *_env, KeyStruct key){
+    Mask modifierCombinations[] = {
+        key.mask,
+        key.mask | numlock_mask,
+        key.mask | scrolllock_mask,
+        key.mask | capslock_mask,
+        key.mask | numlock_mask | scrolllock_mask,
+        key.mask | numlock_mask | capslock_mask,
+        key.mask | scrolllock_mask | capslock_mask,
+        key.mask | numlock_mask | scrolllock_mask | capslock_mask
+    };
+
+    ostringstream sout;
+    if (debug) {
+        sout << "unGrabKey() - XUngrabKey()";
+    }
+
+    for (int screen = 0; screen < ScreenCount(dpy); screen++) {
+        if(debug){
+            sout << " on screen " << screen << ":";
+        }
+        for(int m = 0; m < 8; m++){
+            int ret = XUngrabKey(dpy, key.key, modifierCombinations[m], RootWindow(dpy, screen));
+            if(debug){
+                sout << " " << ret;
+                if(m != 7){
+                    sout << ",";
+                }
+            }
+        }
+        if(debug){
+            sout << ";";
+        }
+    }
+
+    if(debug){
+        printToDebugCallback(_env, sout.str().c_str());
+    }
 }

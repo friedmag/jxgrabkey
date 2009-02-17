@@ -29,6 +29,8 @@ public class JXGrabKeyTest {
 			JOptionPane.showMessageDialog(null, e.getMessage(), e.getClass().getName(), JOptionPane.ERROR_MESSAGE);
 			
 			JXGrabKey.getInstance().cleanUp(); //Automatically unregisters Hotkeys and Listeners
+			//Alternatively, just unregister the key causing this or leave it as it is 
+			//the key may not be grabbed at all or may not respond when numlock, capslock or scrollock is on
 			return;
 		}
 				
