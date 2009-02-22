@@ -1,3 +1,8 @@
+2009/02/22: JXGrabKey 0.3.0
+- fixed another StackOverflow related to debug messages
+- code cleanup and renaming of methods to follow conventions, also comments added in Java code
+- JXGrabKey is now thread-safe
+
 2009/02/22: JXGrabKey 0.2.3
 - fixed StackOverflow bug when only having a listener added, debug enabled and then calling cleanup
 

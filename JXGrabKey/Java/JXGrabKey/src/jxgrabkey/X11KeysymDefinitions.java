@@ -1,4 +1,4 @@
-/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com),
+/*  Copyright 2008  Edwin Stang (edwinstang@gmail.com),
  *
  *  This file is part of JXGrabKey.
  *
@@ -18,13 +18,15 @@
 
 package jxgrabkey;
 
-//These definitions are taken from the escher project (http://escher.sourceforge.net/).
-
 import java.awt.event.KeyEvent;
 
-//They converted them from the original X11 definitions.
-
-public class X11KeysymDefinitions {
+/**
+ * This class holds definitions for X11 keysyms. It can also convert AWT keys into X11 keysyms.
+ *
+ * These definitions are taken from the escher project (http://escher.sourceforge.net/).
+ * They converted them from the original X11 definitions.
+ */
+public final class X11KeysymDefinitions {
 
     //Latin1 ******************************************************************
     public static final int SPACE = 0x020;
@@ -627,8 +629,16 @@ public class X11KeysymDefinitions {
     public static final int CURR_DONG = 0x20ab;
     public static final int CURR_EURO = 0x20ac;
 
-    public static int AWTToX11Keysym(int swingKeyCode){
-        switch(swingKeyCode){
+    private X11KeysymDefinitions(){}
+
+    /**
+     * Converts an AWT key into a X11 keysym.
+     *
+     * @param awtKeyCode
+     * @return
+     */
+    public static int awtToX11Keysym(int awtKey){
+        switch(awtKey){
             case KeyEvent.VK_ENTER:
                 return RETURN;
             case KeyEvent.VK_BACK_SPACE:

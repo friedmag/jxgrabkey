@@ -33,7 +33,7 @@ void getOffendingModifiers(Display* _dpy);
 static int *xErrorHandler(Display *_dpy, XErrorEvent *_event);
 void printToDebugCallback(JNIEnv *_env, const char* message);
 void grabKey(JNIEnv *_env, KeyStruct key);
-void unGrabKey(JNIEnv *_env, KeyStruct key);
+void ungrabKey(JNIEnv *_env, KeyStruct key);
 
 //The following function headers have been generated
 

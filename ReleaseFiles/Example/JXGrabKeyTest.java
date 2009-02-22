@@ -24,7 +24,7 @@ public class JXGrabKeyTest {
 			//int key = KeyEvent.VK_K, mask = KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK | KeyEvent.SHIFT_MASK;
 			int key = KeyEvent.VK_F2, mask = KeyEvent.ALT_MASK; //Conflicts on GNOME
 			
-			JXGrabKey.getInstance().registerAWTHotkey(MY_HOTKEY_INDEX, mask, key);
+			JXGrabKey.getInstance().registerAwtHotkey(MY_HOTKEY_INDEX, mask, key);
 		}catch(HotkeyConflictException e){
 			JOptionPane.showMessageDialog(null, e.getMessage(), e.getClass().getName(), JOptionPane.ERROR_MESSAGE);
 			

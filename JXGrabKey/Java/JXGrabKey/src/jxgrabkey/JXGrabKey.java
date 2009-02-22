@@ -1,4 +1,4 @@
-/*	Copyright 2008  Edwin Stang (edwinstang@gmail.com),
+/*  Copyright 2008  Edwin Stang (edwinstang@gmail.com),
  *
  *  This file is part of JXGrabKey.
  *
@@ -18,27 +18,28 @@
 
 package jxgrabkey;
 
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Vector;
 
+/**
+ * This class implements the API access.
+ * All public methods are synchronized, hence thread-safe.
+ *
+ * @author subes
+ */
 public class JXGrabKey {
 
-    private static boolean debug = false;
+    private static final int SLEEP_WHILE_LISTEN_EXITS = 100;
 
-    public static final int X11_SHIFT_MASK = 1 << 0;
-    public static final int X11_LOCK_MASK = 1 << 1;
-    public static final int X11_CONTROL_MASK = 1 << 2;
-    public static final int X11_MOD1_MASK = 1 << 3;
-    public static final int X11_MOD2_MASK = 1 << 4;
-    public static final int X11_MOD3_MASK = 1 << 5;
-    public static final int X11_MOD4_MASK = 1 << 6;
-    public static final int X11_MOD5_MASK = 1 << 7;
+    private static boolean debug;
 
     private static JXGrabKey instance;
     private static Thread thread;
     private static Vector<HotkeyListener> listeners = new Vector<HotkeyListener>();
 
+    /**
+     * This constructor starts a seperate Thread for the main listen loop.
+     */
     private JXGrabKey() {
         thread = new Thread(){
             @Override
@@ -48,101 +49,140 @@ public class JXGrabKey {
             }
         };
         thread.start();
-        try{
-            Thread.sleep(100); //block a bit, so listen can init everything
-        }catch(InterruptedException e){}
     }
 
-    public static JXGrabKey getInstance(){
+    /**
+     * Retrieves the singleton. Initializes it, if not yet done.
+     *
+     * @return
+     */
+    public static synchronized JXGrabKey getInstance(){
         if(instance == null){
             instance = new JXGrabKey();
         }
         return instance;
     }
 
-    public void addHotkeyListener(HotkeyListener listener){
+    /**
+     * Adds a HotkeyListener.
+     *
+     * @param listener
+     */
+    public synchronized void addHotkeyListener(HotkeyListener listener){
         if(listener == null){
             throw new IllegalArgumentException("listener must not be null");
         }
         JXGrabKey.listeners.add(listener);
     }
 
-    public void removeHotkeyListener(HotkeyListener listener){
+    /**
+     * Removes a HotkeyListener.
+     *
+     * @param listener
+     */
+    public synchronized void removeHotkeyListener(HotkeyListener listener){
         if(listener == null){
             throw new IllegalArgumentException("listener must not be null");
         }
         JXGrabKey.listeners.remove(listener);
     }
 
-    public void cleanUp(){
+    /**
+     * Unregisters all hotkeys, removes all HotkeyListeners,
+     * stops the main listen loop and deinitializes the singleton.
+     */
+    public synchronized void cleanUp(){
         clean();
         if(listeners.size() > 0){
-            if(thread.isAlive()){
-                while(thread.isAlive()){
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ex) {}
-                }
-                instance = null; //next time getInstance is called, reinitialize JXGrabKey
-            }
             listeners.clear();
         }
+        if(thread.isAlive()){
+            while(thread.isAlive()){
+                try {
+                    Thread.sleep(SLEEP_WHILE_LISTEN_EXITS);
+                } catch (InterruptedException e) {
+                    debugCallback("cleanUp() - InterruptedException: "+e.getMessage());
+                }
+            }
+            instance = null; //next time getInstance is called, reinitialize JXGrabKey
+        }
     }
 
-    private native void clean();
-
-    public native void registerHotkey(int id, int mask, int key) throws HotkeyConflictException;
-
-    public void registerAWTHotkey(int id, int mask, int key) throws HotkeyConflictException{
-
-        debugCallback("++ registerAWTHotkey()");
-
-        int x11Mask = 0;
-
-        if ((mask & InputEvent.SHIFT_MASK) != 0) {
-            x11Mask |= X11_SHIFT_MASK;
-        }
-        if ((mask & InputEvent.ALT_MASK) != 0) {
-            x11Mask |= X11_MOD1_MASK;
-        }
-        if ((mask & InputEvent.CTRL_MASK) != 0) {
-            x11Mask |= X11_CONTROL_MASK;
-        }
-        if ((mask & InputEvent.META_MASK) != 0) {
-            x11Mask |= X11_MOD2_MASK;
-        }
-        if ((mask & InputEvent.ALT_GRAPH_MASK) != 0) {
-            x11Mask |= X11_MOD5_MASK;
-        }
-
-        int keysym = X11KeysymDefinitions.AWTToX11Keysym(key);
-
-        debugCallback("registerAWTHotkey() - converted AWTKeycode '"+KeyEvent.getKeyText(key)+"' (0x"+Integer.toHexString(key)+") to x11Keysym 0x"+Integer.toHexString(keysym));
-
-        debugCallback("registerAWTHotkey() - converted AWTMask '"+KeyEvent.getKeyModifiersText(mask)+"' (0x"+Integer.toHexString(mask)+") to x11Mask 0x"+Integer.toHexString(x11Mask));
-
-        registerHotkey(id, x11Mask, keysym);
-
-        debugCallback("-- registerAWTHotkey()");
+    /**
+     * Registers a X11 hotkey.
+     *
+     * @param id
+     * @param x11Mask
+     * @param x11Keysym
+     * @throws jxgrabkey.HotkeyConflictException
+     */
+    public synchronized void registerX11Hotkey(int id, int x11Mask, int x11Keysym) throws HotkeyConflictException{
+        registerHotkey(id, x11Mask, x11Keysym);
     }
 
-    public native void unregisterHotKey(int id);
+    /**
+     * Converts an AWT hotkey into a X11 hotkey and registers it.
+     *
+     * @param id
+     * @param awtMask
+     * @param awtKey
+     * @throws jxgrabkey.HotkeyConflictException
+     */
+    public synchronized void registerAwtHotkey(int id, int awtMask, int awtKey) throws HotkeyConflictException{
+        debugCallback("++ registerAwtHotkey("+id+", 0x"+
+                Integer.toHexString(awtMask)+", 0x"+
+                Integer.toHexString(awtKey)+")");
 
-    public native void listen();
+        int x11Mask = X11MaskDefinitions.awtToX11Mask(awtMask);
+        int x11Keysym = X11KeysymDefinitions.awtToX11Keysym(awtKey);
 
-    private static native void setDebug(boolean debug);
+        debugCallback("registerAwtHotkey() - converted AWT mask '"+
+                KeyEvent.getKeyModifiersText(awtMask)+"' (0x"+Integer.toHexString(awtMask)+
+                ") to X11 mask (0x"+Integer.toHexString(x11Mask)+")");
 
-    public static void setDebugOutput(boolean enabled){
+        debugCallback("registerAwtHotkey() - converted AWT key '"+
+                KeyEvent.getKeyText(awtKey)+"' (0x"+Integer.toHexString(awtKey)+
+                ") to X11 keysym (0x"+Integer.toHexString(x11Keysym)+")");
+
+        registerHotkey(id, x11Mask, x11Keysym);
+
+        debugCallback("-- registerAwtHotkey()");
+    }
+
+    /**
+     * Enables/Disables printing of debug messages.
+     *
+     * @param enabled
+     */
+    public synchronized static void setDebugOutput(boolean enabled){
         debug = enabled;
         setDebug(enabled);
     }
 
-    public static void fireKeyEvent(int id){
+    /**
+     * Notifies HotkeyListeners about a received KeyEvent.
+     *
+     * This method is used by the C++ code.
+     * Do not use this method from externally.
+     *
+     * @param id
+     */
+    public synchronized static void fireKeyEvent(int id){
         for(int i = 0; i < listeners.size(); i++){
             listeners.get(i).onHotkey(id);
         }
     }
 
+    /**
+     * Either gives debug messages to a HotkeyListenerDebugEnabled if registered,
+     * or prints to console otherwise.
+     * Does only print if debug is enabled.
+     *
+     * This method is both used by the C++ and Java code, so it should not be synchronized.
+     * Don't use this method from externally.
+     *
+     * @param debugmessage
+     */
     public static void debugCallback(String debugmessage){
         if(debug){
             debugmessage.trim();
@@ -167,5 +207,21 @@ public class JXGrabKey {
             }
         }
     }
+
+    /**
+     * This method unregisters a hotkey.
+     * If the hotkey is not yet registered, nothing will happen.
+     *
+     * @param id
+     */
+    public synchronized native void unregisterHotKey(int id);
+
+    private native void listen();
+
+    private static native void setDebug(boolean debug);
+
+    private native void clean();
+
+    private native void registerHotkey(int id, int mask, int key) throws HotkeyConflictException;
 
 }

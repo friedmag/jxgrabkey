@@ -1,14 +1,11 @@
 /** 
- *  Usage: 
- *      JXGrabKey.getInstance().registerAWTHotkey(1,
- *				KeyCodeTranslator.translateSWTModifiers(SWT.CTRL),
- *				KeyCodeTranslator.translateSWTKey(SWT.F8));
- */
-
-/**
  * Code copied from class swingwt\awt\event\KeyEvent.java
  * in project swingwt http://swingwt.sourceforge.net
  *
+ * Usage: 
+ *     JXGrabKey.getInstance().registerAWTHotkey(1,
+ *			KeyCodeTranslator.translateSWTModifiers(SWT.CTRL),
+ *			KeyCodeTranslator.translateSWTKey(SWT.F8));
  */
 private static class KeyCodeTranslator {
 
