@@ -21,8 +21,6 @@ package jxgrabkey;
 /**
  * This listener handles debug messages aswell as hotkey events.
  * It can be used for custom logging needs.
- * Though, it is impossible to handle all debug messages from the main listen loop,
- * it's just not worth changing the design. ^^
  *
  * @author subes
  */

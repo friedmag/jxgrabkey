@@ -93,9 +93,6 @@ public class JXGrabKey {
      */
     public synchronized void cleanUp(){
         clean();
-        if(listeners.size() > 0){
-            listeners.clear();
-        }
         if(thread.isAlive()){
             while(thread.isAlive()){
                 try {
@@ -105,6 +102,9 @@ public class JXGrabKey {
                 }
             }
             instance = null; //next time getInstance is called, reinitialize JXGrabKey
+        }
+        if(listeners.size() > 0){
+            listeners.clear();
         }
     }
 
