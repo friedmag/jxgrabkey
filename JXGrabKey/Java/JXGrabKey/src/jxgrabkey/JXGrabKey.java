@@ -44,6 +44,7 @@ public class JXGrabKey {
             @Override
             public void run() {
                 listen();
+                debugCallback("-- listen()");
             }
         };
         thread.start();

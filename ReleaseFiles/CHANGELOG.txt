@@ -1,3 +1,6 @@
+2009/02/22: JXGrabKey 0.2.3
+- fixed StackOverflow bug when only having a listener added, debug enabled and then calling cleanup
+
 2009/02/17: JXGrabKey 0.2.2
 - keys now working properly again with the ignore fix from last version
 

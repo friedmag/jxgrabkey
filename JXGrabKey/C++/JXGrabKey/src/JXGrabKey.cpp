@@ -346,12 +346,6 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen
     isListening = false;
 
     XCloseDisplay(dpy);
-
-    if (debug) {
-        ostringstream sout;
-        sout << "-- listen()";
-        printToDebugCallback(_env, sout.str().c_str());
-    }
 }
 
 JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug
