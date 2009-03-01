@@ -634,7 +634,7 @@ public final class X11KeysymDefinitions {
     /**
      * Converts an AWT key into a X11 keysym.
      *
-     * @param awtKeyCode
+     * @param awtKey
      * @return
      */
     public static int awtToX11Keysym(int awtKey){

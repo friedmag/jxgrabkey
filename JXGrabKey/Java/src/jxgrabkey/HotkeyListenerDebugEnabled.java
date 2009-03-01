@@ -30,7 +30,7 @@ public interface HotkeyListenerDebugEnabled extends HotkeyListener {
      * This method is used to handle debug messages from JXGrabKey.
      * You need to enable debug to receive those.
      * 
-     * @param debugmessage
+     * @param debugMessage
      */
     void debugCallback(String debugMessage);
 }

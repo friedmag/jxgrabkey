@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JXGrabKey" default="package" basedir=".">
+    <description>Used for making releases of JXGrabKey.</description>
+
+    <property file="release.properties"/>
+
+    <target name="-init">
+        <mkdir dir="${release.dir}"/>
+        <mkdir dir="${release.dir.lib}"/>
+        <mkdir dir="${release.dir.docs}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${release.dir}"/>
+    </target>
+
+    <target name="build">
+        <!-- build java project -->
+        <ant dir="${nbproject.java.dir}" target="clean"/>
+        <ant dir="${nbproject.java.dir}" target="jar"/>
+        <ant dir="${nbproject.java.dir}" target="javadoc"/>
+        <!-- build cpp project -->
+        <exec dir="${nbproject.cpp.dir}" executable="make">
+            <arg value="CONF=Release"/>
+            <arg value="clean"/>
+            <arg value="build"/>
+        </exec>
+    </target>
+
+    <target name="copy" depends="-init">
+        <!-- copy jar -->
+        <copy todir="${release.dir.lib}">
+            <fileset dir="${nbproject.java.dir.dist}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </copy>
+        <!-- copy lib -->
+        <copy todir="${release.dir.lib}">
+            <fileset dir="${nbproject.cpp.dir.dist}">
+                <include name="**/*.so"/>
+            </fileset>
+        </copy>
+        <!-- copy javadoc -->
+        <copy todir="${release.dir.docs}">
+            <fileset dir="${nbproject.java.dir.dist}/javadoc"/>
+        </copy>
+        <!-- copy releasefiles -->
+        <copy todir="${release.dir}">
+            <fileset dir="${releasefiles.dir}"/>
+        </copy>
+    </target>
+
+    <target name="pack">
+
+    </target>
+
+    <target name="create-package" description="Creates the release package.">
+        <antcall target="clean"/>
+        <antcall target="build"/>
+        <antcall target="copy"/>
+        <antcall target="pack"/>
+    </target>
+
+    <target name="release">
+
+    </target>
+</project>
