@@ -75,9 +75,11 @@
     </target>
 
     <target name="-tar">
-        <tar destfile="${release.tar}" basedir="${release.dir}"/>
+        <copydir src="${release.dir}" dest="${tar.dir}/${release.dir}"/>
+        <tar destfile="${release.tar}" basedir="${tar.dir}"/>
         <bzip2 src="${release.tar}" destfile="${release.tar.bz2}"/>
         <delete file="${release.tar}"/>
+        <delete dir="${tar.dir}"/>
         <delete dir="${release.dir}"/>
     </target>
 
