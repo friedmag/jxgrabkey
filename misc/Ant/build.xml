@@ -21,8 +21,6 @@
             <arg value="clean"/>
         </exec>
         <delete dir="${release.dir}"/>
-        <delete file="${release.tar}"/>
-        <delete file="${release.tar.bz2}"/>
         <delete file="${nbproject.java.manifest}"/>
     </target>
 
@@ -84,10 +82,12 @@
     </target>
 
     <target name="package" description="Creates the release package.">
+        <delete file="${release.tar.bz2}"/>
         <antcall target="-clean"/>
         <antcall target="-build"/>
         <antcall target="-copy"/>
         <antcall target="-tar"/>
+        <antcall target="-clean"/>
     </target>
 
 </project>
