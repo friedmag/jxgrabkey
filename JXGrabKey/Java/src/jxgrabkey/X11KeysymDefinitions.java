@@ -637,7 +637,7 @@ public final class X11KeysymDefinitions {
      * @param awtKey
      * @return
      */
-    public static int awtToX11Keysym(int awtKey){
+    public static int awtKeyToX11Keysym(int awtKey){
         switch(awtKey){
             case KeyEvent.VK_ENTER:
                 return RETURN;

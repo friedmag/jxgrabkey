@@ -133,8 +133,8 @@ public class JXGrabKey {
                 Integer.toHexString(awtMask)+", 0x"+
                 Integer.toHexString(awtKey)+")");
 
-        int x11Mask = X11MaskDefinitions.awtToX11Mask(awtMask);
-        int x11Keysym = X11KeysymDefinitions.awtToX11Keysym(awtKey);
+        int x11Mask = X11MaskDefinitions.awtMaskToX11Mask(awtMask);
+        int x11Keysym = X11KeysymDefinitions.awtKeyToX11Keysym(awtKey);
 
         debugCallback("registerAwtHotkey() - converted AWT mask '"+
                 KeyEvent.getKeyModifiersText(awtMask)+"' (0x"+Integer.toHexString(awtMask)+

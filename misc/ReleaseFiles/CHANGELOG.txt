@@ -1,3 +1,6 @@
+2009/03/01: JXGrabKey 0.3.1
+- *_DOWN masks now treated as normal masks
+
 2009/02/22: JXGrabKey 0.3.0
 - fixed another StackOverflow related to debug messages
 - code cleanup and renaming of methods to follow conventions, also comments added in Java code
