@@ -10,11 +10,13 @@
         <mkdir dir="${release.dir.docs}"/>
     </target>
 
-    <target name="clean">
+    <target name="-clean">
         <delete dir="${release.dir}"/>
+        <delete file="${release.tar}"/>
+        <delete file="${release.tar.bz2}"/>
     </target>
 
-    <target name="build">
+    <target name="-build">
         <!-- build java project -->
         <ant dir="${nbproject.java.dir}" target="clean"/>
         <ant dir="${nbproject.java.dir}" target="jar"/>
@@ -27,7 +29,7 @@
         </exec>
     </target>
 
-    <target name="copy" depends="-init">
+    <target name="-copy" depends="-init">
         <!-- copy jar -->
         <copy todir="${release.dir.lib}">
             <fileset dir="${nbproject.java.dir.dist}">
@@ -46,19 +48,24 @@
         </copy>
         <!-- copy releasefiles -->
         <copy todir="${release.dir}">
-            <fileset dir="${releasefiles.dir}"/>
+            <fileset dir="${releasefiles.dir}">
+                <exclude name="**/.svn"/>
+            </fileset>
         </copy>
     </target>
 
-    <target name="pack">
-
+    <target name="-tar">
+        <tar destfile="${release.tar}" basedir="${release.dir}"/>
+        <bzip2 src="${release.tar}" destfile="${release.tar.bz2}"/>
+        <delete file="${release.tar}"/>
+        <delete dir="${release.dir}"/>
     </target>
 
-    <target name="create-package" description="Creates the release package.">
-        <antcall target="clean"/>
-        <antcall target="build"/>
-        <antcall target="copy"/>
-        <antcall target="pack"/>
+    <target name="package" description="Creates the release package.">
+        <antcall target="-clean"/>
+        <antcall target="-build"/>
+        <antcall target="-copy"/>
+        <antcall target="-tar"/>
     </target>
 
     <target name="release">
