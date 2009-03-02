@@ -6,7 +6,9 @@
         <format property="TODAY_DE" pattern="dd.MM.yyyy" locale="de,DE"/>
     </tstamp>
 
-    <property file="release.properties"/>
+    <!-- Load properties. First user specific properties which will override common properties. -->
+    <property file="${user.name}.properties"/>
+    <property file="common.properties"/>
 
     <target name="-init">
         <mkdir dir="${release.dir}"/>
