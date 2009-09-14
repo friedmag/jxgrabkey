@@ -68,7 +68,7 @@ public class JXGrabKey {
      *
      * @param listener
      */
-    public synchronized void addHotkeyListener(HotkeyListener listener){
+    public void addHotkeyListener(HotkeyListener listener){
         if(listener == null){
             throw new IllegalArgumentException("listener must not be null");
         }
@@ -80,7 +80,7 @@ public class JXGrabKey {
      *
      * @param listener
      */
-    public synchronized void removeHotkeyListener(HotkeyListener listener){
+    public void removeHotkeyListener(HotkeyListener listener){
         if(listener == null){
             throw new IllegalArgumentException("listener must not be null");
         }
@@ -91,7 +91,7 @@ public class JXGrabKey {
      * Unregisters all hotkeys, removes all HotkeyListeners,
      * stops the main listen loop and deinitializes the singleton.
      */
-    public synchronized void cleanUp(){
+    public void cleanUp(){
         clean();
         if(thread.isAlive()){
             while(thread.isAlive()){
@@ -116,7 +116,7 @@ public class JXGrabKey {
      * @param x11Keysym
      * @throws jxgrabkey.HotkeyConflictException
      */
-    public synchronized void registerX11Hotkey(int id, int x11Mask, int x11Keysym) throws HotkeyConflictException{
+    public void registerX11Hotkey(int id, int x11Mask, int x11Keysym) throws HotkeyConflictException{
         registerHotkey(id, x11Mask, x11Keysym);
     }
 
@@ -128,7 +128,7 @@ public class JXGrabKey {
      * @param awtKey
      * @throws jxgrabkey.HotkeyConflictException
      */
-    public synchronized void registerAwtHotkey(int id, int awtMask, int awtKey) throws HotkeyConflictException{
+    public void registerAwtHotkey(int id, int awtMask, int awtKey) throws HotkeyConflictException{
         debugCallback("++ registerAwtHotkey("+id+", 0x"+
                 Integer.toHexString(awtMask)+", 0x"+
                 Integer.toHexString(awtKey)+")");
@@ -154,7 +154,7 @@ public class JXGrabKey {
      *
      * @param enabled
      */
-    public synchronized static void setDebugOutput(boolean enabled){
+    public static void setDebugOutput(boolean enabled){
         debug = enabled;
         setDebug(enabled);
     }
@@ -167,7 +167,7 @@ public class JXGrabKey {
      *
      * @param id
      */
-    public synchronized static void fireKeyEvent(int id){
+    public static void fireKeyEvent(int id){
         for(int i = 0; i < listeners.size(); i++){
             listeners.get(i).onHotkey(id);
         }
@@ -214,7 +214,7 @@ public class JXGrabKey {
      *
      * @param id
      */
-    public synchronized native void unregisterHotKey(int id);
+    public native void unregisterHotKey(int id);
 
     private native void listen();
 
