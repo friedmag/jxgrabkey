@@ -27,15 +27,10 @@ public class JXGrabKeyTest {
 
     @Test
     public void testRegisterAwtHotkey() throws HotkeyConflictException{
-        printDivider();
         int id = 0;
         int awtMask = KeyEvent.ALT_DOWN_MASK;
         int awtKey = KeyEvent.VK_F;
         JXGrabKey.getInstance().registerAwtHotkey(id, awtMask, awtKey);
-    }
-
-    private void printDivider(){
-        System.out.println("*************************************************");
     }
 
 }
