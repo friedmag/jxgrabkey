@@ -24,9 +24,9 @@ extern "C" {
 #endif
 
 struct KeyStruct {
-    int id;
-    KeyCode key;
-    Mask mask;
+	int id;
+	KeyCode key;
+	Mask mask;
 };
 
 void getOffendingModifiers(Display* _dpy);
