@@ -32,15 +32,15 @@
       <compileType>
         <cCompilerTool>
           <includeDirectories>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include</directoryPath>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include/linux</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include/linux</directoryPath>
           </includeDirectories>
         </cCompilerTool>
         <ccCompilerTool>
           <developmentMode>5</developmentMode>
           <includeDirectories>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include</directoryPath>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include/linux</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include/linux</directoryPath>
           </includeDirectories>
         </ccCompilerTool>
         <linkerTool>
@@ -67,16 +67,16 @@
         <cCompilerTool>
           <developmentMode>5</developmentMode>
           <includeDirectories>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include</directoryPath>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include/linux</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include/linux</directoryPath>
           </includeDirectories>
         </cCompilerTool>
         <ccCompilerTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <includeDirectories>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include</directoryPath>
-            <directoryPath>/usr/lib/jvm/java-6-sun/include/linux</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include</directoryPath>
+            <directoryPath>/usr/lib/jvm/default-java/include/linux</directoryPath>
           </includeDirectories>
         </ccCompilerTool>
         <fortranCompilerTool>
