@@ -1,3 +1,6 @@
+2010/02/28: JXGrabKey 0.3.2
+- added synchronization for c++ keys vector
+
 2009/03/01: JXGrabKey 0.3.1
 - *_DOWN masks now treated as normal masks
 
