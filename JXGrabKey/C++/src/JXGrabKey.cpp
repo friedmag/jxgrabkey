@@ -34,6 +34,7 @@ using namespace std;
 
 Display *dpy = NULL;
 vector<KeyStruct> keys;
+vector<string> displays;
 bool debug = false;
 bool isListening = false;
 bool errorInListen = false;
@@ -249,6 +250,20 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_en
 	}
 }
 
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_setDisplays(JNIEnv *_env,
+		jobject _obj, jobjectArray _displays) {
+  printf("setDisplays called!\n"); fflush(stdout);
+  jstring jstr;
+  const char* cstr;
+  displays.clear();
+  for (int i = 0; i < _env->GetArrayLength(_displays); ++i) {
+    jstr = (jstring)_env->GetObjectArrayElement(_displays, i);
+    cstr = _env->GetStringUTFChars(jstr, NULL);
+    displays.push_back(cstr);
+    _env->ReleaseStringUTFChars(jstr, cstr);
+  }
+}
+
 JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 		jobject _obj) {
 
@@ -289,37 +304,47 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 		return;
 	}
 
-	dpy = XOpenDisplay(NULL);
+  vector<Display*> dps;
+  for (int i = 0; i < displays.size(); ++i) {
+    printf("register %s\n", displays[i].c_str()); fflush(stdout);
+    if (debug) {
+      ostringstream sout;
+      sout << "listen() - registering for " << displays[i];
+      printToDebugCallback(_env, sout.str().c_str());
+    }
+    dpy = XOpenDisplay(displays[i].c_str());
+    dps.push_back(dpy);
 
-	if (!dpy) {
-		if (debug) {
-			ostringstream sout;
-			sout << "listen() - ERROR: cannot open display " << XDisplayName(
-					NULL);
-			printToDebugCallback(_env, sout.str().c_str());
-		}
-		errorInListen = true;
-		return;
-	}
+    if (!dpy) {
+      if (debug) {
+        ostringstream sout;
+        sout << "listen() - ERROR: cannot open display " << XDisplayName(
+            NULL);
+        printToDebugCallback(_env, sout.str().c_str());
+      }
+      errorInListen = true;
+      return;
+    }
 
-	getOffendingModifiers(dpy);
+    getOffendingModifiers(dpy);
 
-	int ret = XAllowEvents(dpy, AsyncKeyboard, CurrentTime);
-	if (debug && !ret) {
-		ostringstream sout;
-		sout << "listen() - WARNING: XAllowEvents() returned false";
-		printToDebugCallback(_env, sout.str().c_str());
-	}
+    int ret = XAllowEvents(dpy, AsyncKeyboard, CurrentTime);
+    if (debug && !ret) {
+      ostringstream sout;
+      sout << "listen() - WARNING: XAllowEvents() returned false";
+      printToDebugCallback(_env, sout.str().c_str());
+    }
 
-	for (int screen = 0; screen < ScreenCount(dpy); screen++) {
-		ret = XSelectInput(dpy, RootWindow(dpy, screen), KeyPressMask);
-		if (debug && !ret) {
-			ostringstream sout;
-			sout << "listen() - WARNING: XSelectInput() on screen " << std::dec
-					<< screen << " returned false";
-			printToDebugCallback(_env, sout.str().c_str());
-		}
-	}
+    for (int screen = 0; screen < ScreenCount(dpy); screen++) {
+      ret = XSelectInput(dpy, RootWindow(dpy, screen), KeyPressMask);
+      if (debug && !ret) {
+        ostringstream sout;
+        sout << "listen() - WARNING: XSelectInput() on screen " << std::dec
+          << screen << " returned false";
+        printToDebugCallback(_env, sout.str().c_str());
+      }
+    }
+  }
 
 	XSetErrorHandler((XErrorHandler) xErrorHandler);
 	pthread_mutex_init(&x_lock, NULL);
@@ -328,6 +353,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	isListening = true;
 
 	XEvent ev;
+  Display* found;
 
   // For the callback queue
   vector<int> callbacks;
@@ -335,12 +361,20 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 
 	while (doListen) {
 
-		while (!XPending(dpy) && doListen) { //Don't block on XNextEvent(), this breaks XGrabKey()!
-			usleep(SLEEP_TIME_MS * MICROSECOND_TO_MILLISECOND_MULTIPLICATOR);
-		}
+    found = NULL;
+    while (found == NULL && doListen) {
+      for (int i = 0; i < dps.size(); ++i) {
+        if (XPending(dps[i]) && doListen) { //Don't block on XNextEvent(), this breaks XGrabKey()!
+          found = dps[i];
+        }
+      }
+      if (!found && doListen) {
+        usleep(SLEEP_TIME_MS * MICROSECOND_TO_MILLISECOND_MULTIPLICATOR);
+      }
+    }
 
 		if (doListen) {
-			XNextEvent(dpy, &ev);
+			XNextEvent(found, &ev);
 
 			if (ev.type == KeyPress) {
 				pthread_mutex_lock(&x_lock);
@@ -355,7 +389,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 							sout << "listen() - received: id = " << std::dec
 									<< key.id
 									<< "; type = KeyPress; x11Keycode = '"
-									<< XKeysymToString(XKeycodeToKeysym(dpy,
+									<< XKeysymToString(XKeycodeToKeysym(found,
 											ev.xkey.keycode, 0)) << "' (0x"
 									<< std::hex << ev.xkey.keycode
 									<< "); x11Mask = 0x" << std::hex
@@ -382,7 +416,8 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	isListening = false;
 
 	pthread_mutex_destroy(&x_lock);
-	XCloseDisplay(dpy);
+  for (int i = 0; i < dps.size(); ++i)
+    XCloseDisplay(dps[i]);
 }
 
 JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_setDebug(JNIEnv *_env,

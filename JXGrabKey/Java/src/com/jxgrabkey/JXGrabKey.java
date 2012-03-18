@@ -41,14 +41,20 @@ public class JXGrabKey {
      * This constructor starts a seperate Thread for the main listen loop.
      */
     private JXGrabKey() {
-        thread = new Thread(){
-            @Override
-            public void run() {
-                listen();
-                debugCallback("-- listen()");
-            }
-        };
-        thread.start();
+    }
+
+    public void init(String[] displays) {
+      debugCallback("init 1");
+      setDisplays(displays);
+      debugCallback("init 2");
+      thread = new Thread(){
+        @Override
+        public void run() {
+          listen();
+          debugCallback("-- listen()");
+        }
+      };
+      thread.start();
     }
 
     /**
@@ -209,6 +215,8 @@ public class JXGrabKey {
     public native void unregisterHotKey(int id);
 
     private native void listen();
+
+    private native void setDisplays(String[] displays);
 
     private static native void setDebug(boolean debug);
 

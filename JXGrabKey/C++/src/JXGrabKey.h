@@ -67,6 +67,13 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *, jobject);
 
 /*
  * Class:     jxgrabkey_JXGrabKey
+ * Method:    setDisplays
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_setDisplays(JNIEnv *, jobject, jobjectArray);
+
+/*
+ * Class:     jxgrabkey_JXGrabKey
  * Method:    setDebug
  * Signature: (Z)V
  */
