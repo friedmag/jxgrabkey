@@ -41,7 +41,7 @@ bool doListen = true;
 bool registerHotkeyIsWaitingForException = false;
 bool registerHotkeyHasException = false;
 
-pthread_spinlock_t x_lock;
+pthread_mutex_t x_lock;
 
 unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
@@ -68,11 +68,11 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
 		return;
 	}
 
-	pthread_spin_lock(&x_lock);
+	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
 		Java_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, keys.at(i).id);
 	}
-	pthread_spin_unlock(&x_lock);
+	pthread_mutex_unlock(&x_lock);
 
 	doListen = false;
 }
@@ -108,7 +108,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
 		return;
 	}
 
-	pthread_spin_lock(&x_lock);
+	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
 		if (keys[i].id == _id) {
 			Java_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, _id);
@@ -121,7 +121,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
 	key.key = XKeysymToKeycode(dpy, _key);
 	key.mask = _mask;
 	keys.push_back(key);
-	pthread_spin_unlock(&x_lock);
+	pthread_mutex_unlock(&x_lock);
 
 	if (debug) {
 		ostringstream sout;
@@ -228,7 +228,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_env,
 		return;
 	}
 
-	pthread_spin_lock(&x_lock);
+	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
 		if (keys.at(i).id == _id) {
 			ungrabKey(_env, keys.at(i));
@@ -236,7 +236,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_env,
 			break;
 		}
 	}
-	pthread_spin_unlock(&x_lock);
+	pthread_mutex_unlock(&x_lock);
 
 	if (debug) {
 		ostringstream sout;
@@ -318,7 +318,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	}
 
 	XSetErrorHandler((XErrorHandler) xErrorHandler);
-	pthread_spin_init(&x_lock, NULL); // init here bcoz of the returns
+	pthread_mutex_init(&x_lock, NULL); // init here bcoz of the returns
 
 	doListen = true;
 	isListening = true;
@@ -335,7 +335,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 			XNextEvent(dpy, &ev);
 
 			if (ev.type == KeyPress) {
-				pthread_spin_lock(&x_lock);
+				pthread_mutex_lock(&x_lock);
 				for (int i = 0; i < keys.size(); i++) {
 					ev.xkey.state &= ~(numlock_mask | capslock_mask
 							| scrolllock_mask); //Filter offending modifiers
@@ -357,14 +357,14 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 						break;
 					}
 				}
-				pthread_spin_unlock(&x_lock);
+				pthread_mutex_unlock(&x_lock);
 			}
 		}
 	}
 
 	isListening = false;
 
-	pthread_spin_destroy(&x_lock);
+	pthread_mutex_destroy(&x_lock);
 	XCloseDisplay(dpy);
 }
 
