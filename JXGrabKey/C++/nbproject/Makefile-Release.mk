@@ -53,7 +53,7 @@ dist/Release/${PLATFORM}/libJXGrabKey.so: ${OBJECTFILES}
 
 ${OBJECTDIR}/src/JXGrabKey.o: src/JXGrabKey.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.cc) -O2 -s -I/usr/lib/jvm/default-java/include -I/usr/lib/jvm/default-java/include/linux -fPIC  -o ${OBJECTDIR}/src/JXGrabKey.o src/JXGrabKey.cpp
+	$(COMPILE.cc) -O2 -s -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -fPIC  -o ${OBJECTDIR}/src/JXGrabKey.o src/JXGrabKey.cpp
 
 # Subprojects
 .build-subprojects:
