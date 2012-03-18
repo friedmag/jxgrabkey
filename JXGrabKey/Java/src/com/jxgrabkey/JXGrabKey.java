@@ -162,10 +162,16 @@ public class JXGrabKey {
      *
      * @param id
      */
-    public static void fireKeyEvent(int id){
+    public static void fireKeyEvent(int id, JXEvent ev){
+      debugCallback("fireKeyEvent called...");
+      try {
         for(int i = 0; i < listeners.size(); i++){
-            listeners.get(i).onHotkey(id);
+            listeners.get(i).onHotkey(id, ev);
         }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      debugCallback("fireKeyEvent done...");
     }
 
     /**

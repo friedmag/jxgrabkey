@@ -29,6 +29,7 @@ public interface HotkeyListener {
      * This method receives the hotkey events which are received by the main listen loop.
      *
      * @param id
+     * @param ev
      */
-    void onHotkey(int id);
+    void onHotkey(int id, JXEvent ev);
 }

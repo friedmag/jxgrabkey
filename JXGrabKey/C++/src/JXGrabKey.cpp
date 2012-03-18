@@ -34,7 +34,9 @@ using namespace std;
 
 Display *dpy = NULL;
 vector<KeyStruct> keys;
+vector<CallbackStruct> callbacks;
 vector<string> displays;
+vector<Display*> dps;
 bool debug = false;
 bool isListening = false;
 bool errorInListen = false;
@@ -127,6 +129,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_registerHotkey__III(
 	key.key = XKeysymToKeycode(dpy, _key);
 	key.mask = _mask;
 	keys.push_back(key);
+	grabKey(_env, key);
 	pthread_mutex_unlock(&x_lock);
 
 	if (debug) {
@@ -167,8 +170,6 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_registerHotkey__III(
 
 		printToDebugCallback(_env, sout.str().c_str());
 	}
-
-	grabKey(_env, key);
 
 	//Flush X to receive errors
 	registerHotkeyIsWaitingForException = true;
@@ -293,18 +294,17 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 		return;
 	}
 
-	jmethodID mid = _env->GetStaticMethodID(cls, "fireKeyEvent", "(I)V");
+	jmethodID mid = _env->GetStaticMethodID(cls, "fireKeyEvent", "(ILcom/jxgrabkey/JXEvent;)V");
 	if (mid == NULL) {
 		if (debug) {
 			ostringstream sout;
-			sout << "listen() - ERROR: cannot find method fireKeyEvent(int)";
+			sout << "listen() - ERROR: cannot find method fireKeyEvent(JXEvent)";
 			printToDebugCallback(_env, sout.str().c_str());
 		}
 		errorInListen = true;
 		return;
 	}
 
-  vector<Display*> dps;
   for (int i = 0; i < displays.size(); ++i) {
     printf("register %s\n", displays[i].c_str()); fflush(stdout);
     if (debug) {
@@ -355,19 +355,17 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	XEvent ev;
   Display* found;
 
-  // For the callback queue
-  vector<int> callbacks;
-  callbacks.reserve(6);
-
 	while (doListen) {
 
     found = NULL;
     while (found == NULL && doListen) {
+      pthread_mutex_lock(&x_lock);
       for (int i = 0; i < dps.size(); ++i) {
         if (XPending(dps[i]) && doListen) { //Don't block on XNextEvent(), this breaks XGrabKey()!
           found = dps[i];
         }
       }
+      pthread_mutex_unlock(&x_lock);
       if (!found && doListen) {
         usleep(SLEEP_TIME_MS * MICROSECOND_TO_MILLISECOND_MULTIPLICATOR);
       }
@@ -396,7 +394,11 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 									<< ev.xkey.state << endl;
 							printToDebugCallback(_env, sout.str().c_str());
 						}
-            callbacks.push_back(key.id);
+
+            CallbackStruct callback;
+            callback.id = key.id;
+            callback.point = getPoint(_env, found);
+            callbacks.push_back(callback);
 						break;
 					}
 				}
@@ -404,7 +406,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 
         printToDebugCallback(_env, "listen() - sending callbacks");
         for (int i = 0; i < callbacks.size(); ++i) {
-          _env->CallStaticVoidMethod(cls, mid, callbacks[i]);
+          _env->CallStaticVoidMethod(cls, mid, callbacks[i].id, callbacks[i].point);
         }
         callbacks.clear();
         printToDebugCallback(_env, "listen() - callbacks complete");
@@ -498,47 +500,71 @@ static int *xErrorHandler(Display *_dpy, XErrorEvent *_event) {
 }
 
 void grabKey(JNIEnv *_env, KeyStruct key) {
-	Mask modifierCombinations[] = { key.mask, key.mask | numlock_mask, key.mask
-			| scrolllock_mask, key.mask | capslock_mask, key.mask
-			| numlock_mask | scrolllock_mask, key.mask | numlock_mask
-			| capslock_mask, key.mask | scrolllock_mask | capslock_mask,
-			key.mask | numlock_mask | scrolllock_mask | capslock_mask };
+  Mask modifierCombinations[] = { key.mask, key.mask | numlock_mask, key.mask
+    | scrolllock_mask, key.mask | capslock_mask, key.mask
+      | numlock_mask | scrolllock_mask, key.mask | numlock_mask
+      | capslock_mask, key.mask | scrolllock_mask | capslock_mask,
+      key.mask | numlock_mask | scrolllock_mask | capslock_mask };
 
-	for (int screen = 0; screen < ScreenCount(dpy); screen++) {
-		for (int m = 0; m < 8; m++) {
-			int ret =
-					XGrabKey(dpy, key.key, modifierCombinations[m],
-							RootWindow(dpy, screen), True, GrabModeAsync,
-							GrabModeAsync);
-			if (debug && !ret) {
-				ostringstream sout;
-				sout << "grabKey() - WARNING: XGrabKey() on screen "
-						<< std::dec << screen << " for mask combination "
-						<< std::dec << m << " returned false";
-				printToDebugCallback(_env, sout.str().c_str());
-			}
-		}
-	}
+  for (int i = 0; i < dps.size(); ++i) {
+    Display* _dpy = dps[i];
+    for (int screen = 0; screen < ScreenCount(_dpy); screen++) {
+      for (int m = 0; m < 8; m++) {
+        int ret =
+          XGrabKey(_dpy, key.key, modifierCombinations[m],
+              RootWindow(_dpy, screen), True, GrabModeAsync,
+              GrabModeAsync);
+        if (debug && !ret) {
+          ostringstream sout;
+          sout << "grabKey() - WARNING: XGrabKey() on screen "
+            << std::dec << screen << " for mask combination "
+            << std::dec << m << " returned false";
+          printToDebugCallback(_env, sout.str().c_str());
+        }
+      }
+    }
+  }
 }
 
 void ungrabKey(JNIEnv *_env, KeyStruct key) {
-	Mask modifierCombinations[] = { key.mask, key.mask | numlock_mask, key.mask
-			| scrolllock_mask, key.mask | capslock_mask, key.mask
-			| numlock_mask | scrolllock_mask, key.mask | numlock_mask
-			| capslock_mask, key.mask | scrolllock_mask | capslock_mask,
-			key.mask | numlock_mask | scrolllock_mask | capslock_mask };
+  Mask modifierCombinations[] = { key.mask, key.mask | numlock_mask, key.mask
+    | scrolllock_mask, key.mask | capslock_mask, key.mask
+      | numlock_mask | scrolllock_mask, key.mask | numlock_mask
+      | capslock_mask, key.mask | scrolllock_mask | capslock_mask,
+      key.mask | numlock_mask | scrolllock_mask | capslock_mask };
 
-	for (int screen = 0; screen < ScreenCount(dpy); screen++) {
-		for (int m = 0; m < 8; m++) {
-			int ret = XUngrabKey(dpy, key.key, modifierCombinations[m],
-					RootWindow(dpy, screen));
-			if (debug && !ret) {
-				ostringstream sout;
-				sout << "ungrabKey() - WARNING: XUngrabKey() on screen "
-						<< std::dec << screen << " for mask combination "
-						<< std::dec << m << " returned false";
-				printToDebugCallback(_env, sout.str().c_str());
-			}
-		}
-	}
+  for (int i = 0; i < dps.size(); ++i) {
+    Display* _dpy = dps[i];
+    for (int screen = 0; screen < ScreenCount(_dpy); screen++) {
+      for (int m = 0; m < 8; m++) {
+        int ret = XUngrabKey(_dpy, key.key, modifierCombinations[m],
+            RootWindow(_dpy, screen));
+        if (debug && !ret) {
+          ostringstream sout;
+          sout << "ungrabKey() - WARNING: XUngrabKey() on screen "
+            << std::dec << screen << " for mask combination "
+            << std::dec << m << " returned false";
+          printToDebugCallback(_env, sout.str().c_str());
+        }
+      }
+    }
+  }
+}
+
+jobject getPoint(JNIEnv* _env, Display* _dpy) {
+  jclass pointClass = _env->FindClass("com/jxgrabkey/JXEvent");
+  jmethodID cons = _env->GetMethodID(pointClass, "<init>", "(Ljava/lang/String;III)V");
+  Window window_returned;
+  int root_x, root_y;
+  int win_x, win_y;
+  unsigned int mask_return;
+  for (int i = 0; i < ScreenCount(_dpy); i++) {
+    Bool result = XQueryPointer(_dpy, RootWindow(_dpy, i), &window_returned,
+        &window_returned, &root_x, &root_y, &win_x, &win_y,
+        &mask_return);
+    if (result == True) {
+      return _env->NewObject(pointClass, cons, _env->NewStringUTF(DisplayString(_dpy)), i, win_x, win_y);
+    }
+  }
+  return NULL;
 }
