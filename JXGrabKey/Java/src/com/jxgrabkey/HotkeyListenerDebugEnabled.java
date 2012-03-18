@@ -16,19 +16,21 @@
  *  along with JXGrabKey.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jxgrabkey;
+package com.jxgrabkey;
 
 /**
- * This listener is used to handle hotkey events from externally.
+ * This listener handles debug messages aswell as hotkey events.
+ * It can be used for custom logging needs.
  *
  * @author subes
  */
-public interface HotkeyListener {
-
+public interface HotkeyListenerDebugEnabled extends HotkeyListener {
+    
     /**
-     * This method receives the hotkey events which are received by the main listen loop.
-     *
-     * @param id
+     * This method is used to handle debug messages from JXGrabKey.
+     * You need to enable debug to receive those.
+     * 
+     * @param debugMessage
      */
-    void onHotkey(int id);
+    void debugCallback(String debugMessage);
 }

@@ -42,35 +42,35 @@ void ungrabKey(JNIEnv *_env, KeyStruct key);
  * Method:    clean
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_clean(JNIEnv *, jobject);
 
 /*
  * Class:     jxgrabkey_JXGrabKey
  * Method:    registerHotkey
  * Signature: (III)V
  */
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(JNIEnv *, jobject, jint, jint, jint);
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_registerHotkey__III(JNIEnv *, jobject, jint, jint, jint);
 
 /*
  * Class:     jxgrabkey_JXGrabKey
  * Method:    unregisterHotKey
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *, jobject, jint);
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *, jobject, jint);
 
 /*
  * Class:     jxgrabkey_JXGrabKey
  * Method:    listen
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *, jobject);
 
 /*
  * Class:     jxgrabkey_JXGrabKey
  * Method:    setDebug
  * Signature: (Z)V
  */
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug(JNIEnv *, jobject, jboolean);
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_setDebug(JNIEnv *, jobject, jboolean);
 
 #ifdef __cplusplus
 }

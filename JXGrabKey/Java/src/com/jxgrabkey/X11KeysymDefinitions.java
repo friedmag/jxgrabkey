@@ -16,7 +16,7 @@
  *  along with JXGrabKey.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jxgrabkey;
+package com.jxgrabkey;
 
 import java.awt.event.KeyEvent;
 

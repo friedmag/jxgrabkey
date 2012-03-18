@@ -16,7 +16,7 @@
  *  along with JXGrabKey.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jxgrabkey;
+package com.jxgrabkey;
 
 import java.awt.event.KeyEvent;
 import java.util.Vector;
@@ -223,5 +223,11 @@ public class JXGrabKey {
     private native void clean();
 
     private native void registerHotkey(int id, int mask, int key) throws HotkeyConflictException;
+
+    static {
+      System.out.println("Load JXGrabKey...");
+      System.loadLibrary("JXGrabKey");
+      System.out.println("LOADED JXGrabKey!");
+    }
 
 }

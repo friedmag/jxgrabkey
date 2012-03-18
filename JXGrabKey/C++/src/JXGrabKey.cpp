@@ -47,7 +47,7 @@ unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
 unsigned int capslock_mask = 0;
 
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
 		jobject _obj) {
 
 	while (!isListening && !errorInListen) {
@@ -70,14 +70,14 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
 
 	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
-		Java_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, keys.at(i).id);
+		Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, keys.at(i).id);
 	}
 	pthread_mutex_unlock(&x_lock);
 
 	doListen = false;
 }
 
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_registerHotkey__III(
 		JNIEnv *_env, jobject _obj, jint _id, jint _mask, jint _key) {
 
 	if (debug) {
@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
 	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
 		if (keys[i].id == _id) {
-			Java_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, _id);
+			Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, _id);
 			break;
 		}
 	}
@@ -172,7 +172,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
 		message << "Unable to register hotkey with id = " << _id
 				<< ". Each hotkey combination can only be grabbed by one application at a time!";
 
-		jclass cls = _env->FindClass("jxgrabkey/HotkeyConflictException");
+		jclass cls = _env->FindClass("com/jxgrabkey/HotkeyConflictException");
 		if (cls != NULL) {
 			_env->ThrowNew(cls, message.str().c_str());
 			//Don't print anything to console until function return,
@@ -200,7 +200,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_registerHotkey__III(
 	}
 }
 
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_env,
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_env,
 		jobject _obj, jint _id) {
 
 	if (debug) {
@@ -245,7 +245,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_env,
 	}
 }
 
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 		jobject _obj) {
 
 	if (debug) {
@@ -263,7 +263,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 		return;
 	}
 
-	jclass cls = _env->FindClass("jxgrabkey/JXGrabKey");
+	jclass cls = _env->FindClass("com/jxgrabkey/JXGrabKey");
 	if (cls == NULL) {
 		if (debug) {
 			ostringstream sout;
@@ -368,7 +368,7 @@ JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	XCloseDisplay(dpy);
 }
 
-JNIEXPORT void JNICALL Java_jxgrabkey_JXGrabKey_setDebug(JNIEnv *_env,
+JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_setDebug(JNIEnv *_env,
 		jobject _obj, jboolean _debug) {
 	debug = _debug;
 }
@@ -406,7 +406,7 @@ void printToDebugCallback(JNIEnv *_env, const char* message) {
 	if (debug) {
 		static JNIEnv *env = _env;
 		if (env != NULL) {
-			static jclass cls = env->FindClass("jxgrabkey/JXGrabKey");
+			static jclass cls = env->FindClass("com/jxgrabkey/JXGrabKey");
 			static jmethodID mid = env->GetStaticMethodID(cls, "debugCallback",
 					"(Ljava/lang/String;)V");
 
