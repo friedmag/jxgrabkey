@@ -225,9 +225,7 @@ public class JXGrabKey {
     private native void registerHotkey(int id, int mask, int key) throws HotkeyConflictException;
 
     static {
-      System.out.println("Load JXGrabKey...");
       System.loadLibrary("JXGrabKey");
-      System.out.println("LOADED JXGrabKey!");
     }
 
 }
