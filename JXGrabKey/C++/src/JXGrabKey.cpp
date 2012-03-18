@@ -47,6 +47,11 @@ unsigned int numlock_mask = 0;
 unsigned int scrolllock_mask = 0;
 unsigned int capslock_mask = 0;
 
+static void unregisterHotkey(JNIEnv* _env, int i) {
+  ungrabKey(_env, keys.at(i));
+  keys.erase(keys.begin() + i);
+}
+
 JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
 		jobject _obj) {
 
@@ -70,7 +75,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_clean(JNIEnv *_env,
 
 	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
-		Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(_env, _obj, keys.at(i).id);
+    unregisterHotkey(_env, i);
 	}
 	pthread_mutex_unlock(&x_lock);
 
@@ -231,8 +236,7 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_unregisterHotKey(JNIEnv *_en
 	pthread_mutex_lock(&x_lock);
 	for (int i = 0; i < keys.size(); i++) {
 		if (keys.at(i).id == _id) {
-			ungrabKey(_env, keys.at(i));
-			keys.erase(keys.begin() + i);
+      unregisterHotkey(_env, i);
 			break;
 		}
 	}
@@ -318,12 +322,16 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 	}
 
 	XSetErrorHandler((XErrorHandler) xErrorHandler);
-	pthread_mutex_init(&x_lock, NULL); // init here bcoz of the returns
+	pthread_mutex_init(&x_lock, NULL);
 
 	doListen = true;
 	isListening = true;
 
 	XEvent ev;
+
+  // For the callback queue
+  vector<int> callbacks;
+  callbacks.reserve(6);
 
 	while (doListen) {
 
@@ -337,14 +345,15 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 			if (ev.type == KeyPress) {
 				pthread_mutex_lock(&x_lock);
 				for (int i = 0; i < keys.size(); i++) {
+          KeyStruct& key = keys.at(i);
 					ev.xkey.state &= ~(numlock_mask | capslock_mask
 							| scrolllock_mask); //Filter offending modifiers
-					if (ev.xkey.keycode == keys.at(i).key && ev.xkey.state
-							== keys.at(i).mask) {
+					if (ev.xkey.keycode == key.key && ev.xkey.state
+							== key.mask) {
 						if (debug) {
 							ostringstream sout;
 							sout << "listen() - received: id = " << std::dec
-									<< keys.at(i).id
+									<< key.id
 									<< "; type = KeyPress; x11Keycode = '"
 									<< XKeysymToString(XKeycodeToKeysym(dpy,
 											ev.xkey.keycode, 0)) << "' (0x"
@@ -353,15 +362,23 @@ JNIEXPORT void JNICALL Java_com_jxgrabkey_JXGrabKey_listen(JNIEnv *_env,
 									<< ev.xkey.state << endl;
 							printToDebugCallback(_env, sout.str().c_str());
 						}
-						_env->CallStaticVoidMethod(cls, mid, keys.at(i).id);
+            callbacks.push_back(key.id);
 						break;
 					}
 				}
 				pthread_mutex_unlock(&x_lock);
+
+        printToDebugCallback(_env, "listen() - sending callbacks");
+        for (int i = 0; i < callbacks.size(); ++i) {
+          _env->CallStaticVoidMethod(cls, mid, callbacks[i]);
+        }
+        callbacks.clear();
+        printToDebugCallback(_env, "listen() - callbacks complete");
 			}
 		}
 	}
 
+  printToDebugCallback(_env, "listen() - exiting!");
 	isListening = false;
 
 	pthread_mutex_destroy(&x_lock);

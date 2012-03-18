@@ -93,19 +93,8 @@ public class JXGrabKey {
      */
     public void cleanUp(){
         clean();
-        if(thread.isAlive()){
-            while(thread.isAlive()){
-                try {
-                    Thread.sleep(SLEEP_WHILE_LISTEN_EXITS);
-                } catch (InterruptedException e) {
-                    debugCallback("cleanUp() - InterruptedException: "+e.getMessage());
-                }
-            }
-            instance = null; //next time getInstance is called, reinitialize JXGrabKey
-        }
-        if(listeners.size() > 0){
-            listeners.clear();
-        }
+        instance = null; //next time getInstance is called, reinitialize JXGrabKey
+        listeners.clear();
     }
 
     /**
