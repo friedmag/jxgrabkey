@@ -173,6 +173,9 @@ public class JXGrabKey {
      * @param debugmessage
      */
     public static void debugCallback(String debugmessage){
+      if (debug)
+        System.out.println(debugmessage.trim());
+/*
         if(debug){
             debugmessage.trim();
             if(debugmessage.charAt(debugmessage.length()-1) != '\n'){
@@ -194,7 +197,7 @@ public class JXGrabKey {
             if(found == false){
                 System.out.print(debugmessage);
             }
-        }
+        }*/
     }
 
     /**
