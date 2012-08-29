@@ -25,6 +25,7 @@
 #include <X11/keysym.h>
 
 #include <pthread.h>
+#include <unistd.h>
 #include <streambuf>
 #include <iostream>
 #include <sstream>
